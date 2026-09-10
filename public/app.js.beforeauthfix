@@ -1,0 +1,68 @@
+const $=id=>document.getElementById(id);
+const names={1:"Bet9ja",2:"SportyBet",3:"Betway",4:"1xBet",5:"BetKing"};
+const ids=[1,2,3,4,5];
+for(const id of ids){$("from").insertAdjacentHTML("beforeend",`<option value="${id}">${names[id]}</option>`);$("to").insertAdjacentHTML("beforeend",`<option value="${id}">${names[id]}</option>`);}
+$("to").value="2";
+
+$("paste").onclick=async()=>{try{$("code").value=await navigator.clipboard.readText()}catch{ $("status").textContent="Paste permission was not available. Paste the code manually."}};
+$("convert").onclick=async()=>{
+ const code=$("code").value.trim(),from=$("from").value,to=$("to").value;
+ $("result").classList.add("hidden");$("status").textContent="";
+ if(!code)return $("status").textContent="Enter a booking code.";
+ if(from===to)return $("status").textContent="Choose different bookmakers.";
+ $("convert").disabled=true;$("convert").textContent="Matching selections…";
+ try{
+  const r=await fetch("/api/convert",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({booking_code:code,from:bookmakerKey(from),to:bookmakerKey(to)})});
+  const d=await r.json();if(!r.ok)throw Error(d.message||"Conversion failed.");
+  if(!d.converted_code)throw Error("The provider did not return a converted code.");
+  $("converted").textContent=d.converted_code;$("events").textContent=d.number_of_events??"—";$("odds").textContent=d.total_odds??"—";
+  $("badge").textContent="CONVERTED";$("badge").className="success";
+  $("warnings").innerHTML=(d.flagged?.length?`<div class="warning"><b>Check before betting:</b><br>${d.flagged.map(esc).join("<br>")}</div>`:"");
+  $("result").classList.remove("hidden");
+ }catch(e){$("status").textContent=e.message}finally{$("convert").disabled=false;$("convert").textContent="Convert code";}
+};
+$("copy").onclick=async()=>{await navigator.clipboard.writeText($("converted").textContent);$("copy").textContent="Copied ✓";setTimeout(()=>$("copy").textContent="Copy",1400)};
+$("share").onclick=async()=>{const text=`${$("from").selectedOptions[0].text} → ${$("to").selectedOptions[0].text}\nCode: ${$("converted").textContent}`;if(navigator.share)await navigator.share({title:"BetCode Pro",text});else{await navigator.clipboard.writeText(text);$("share").textContent="Copied ✓";setTimeout(()=>$("share").textContent="Share",1400)}};
+function bookmakerKey(id){return ({1:"bet9ja",2:"sportybet",3:"betway",4:"1xbet",5:"betking"})[id]}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+
+function saveHistory(item){
+  const h=JSON.parse(localStorage.getItem("betcode_history")||"[]");
+  h.unshift({...item,at:new Date().toISOString()});
+  localStorage.setItem("betcode_history",JSON.stringify(h.slice(0,20)));
+}
+const originalConvert=$("convert").onclick;
+$("convert").onclick=async()=>{
+  const before=$("code").value.trim();
+  await originalConvert();
+  const out=$("converted").textContent;
+  if(out && out!=="—") saveHistory({
+    from:$("from").selectedOptions[0].text,
+    to:$("to").selectedOptions[0].text,
+    input:before,
+    output:out
+  });
+};
+
+function renderHistory(){
+ const h=JSON.parse(localStorage.getItem("betcode_history")||"[]");
+ $("history").innerHTML=h.length?h.slice(0,8).map(x=>`<div class="historyItem"><b>${esc(x.from)} → ${esc(x.to)}</b><br><span>${esc(x.output)}</span></div>`).join(""):"No conversions yet.";
+}
+renderHistory();
+
+async function auth(action){
+ const email=$("email").value.trim(),password=$("password").value;
+ if(!email||!password)return $("authStatus").textContent="Enter your email and password.";
+ const r=await fetch("/api/"+action,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password})});
+ const d=await r.json(); if(!r.ok)return $("authStatus").textContent=d.message||"Authentication failed.";
+ localStorage.setItem("betcode_token",d.token);
+ $("authStatus").textContent="Signed in ✓"; $("accountState").textContent=`${d.plan} · ${d.credits} credits`;
+}
+$("register").onclick=()=>auth("register");
+$("login").onclick=()=>auth("login");
+(async()=>{const t=localStorage.getItem("betcode_token");if(!t)return;
+ const r=await fetch("/api/me",{headers:{Authorization:"Bearer "+t}});
+ if(r.ok){const d=await r.json();$("accountState").textContent=`${d.plan} · ${d.credits} credits`;}
+})();
+const _fetch=window.fetch;
+window.fetch=(...args)=>{if(args[1]?.body?.includes?.('"booking_code"')){args[1].headers={...(args[1].headers||{}),...(localStorage.getItem("betcode_token")?{Authorization:"Bearer "+localStorage.getItem("betcode_token")}:{})};}return _fetch(...args)};

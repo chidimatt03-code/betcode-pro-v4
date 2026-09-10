@@ -1,0 +1,46 @@
+{
+  "sourceBookmaker": "sportybet",
+  "sourceCode": "TEST-SP-001",
+  "selections": [
+    {
+      "sport": "football",
+      "event": {
+        "id": "test-event-001",
+        "home": "Manchester United",
+        "away": "Arsenal",
+        "competition": "Premier League",
+        "startTime": "2026-09-06T18:00:00Z"
+      },
+      "market": {
+        "name": "Match Result",
+        "type": "1X2",
+        "line": null
+      },
+      "selection": {
+        "type": "1X2",
+        "name": "Home",
+        "value": null
+      }
+    },
+    {
+      "sport": "football",
+      "event": {
+        "id": "test-event-002",
+        "home": "Chelsea",
+        "away": "Liverpool",
+        "competition": "Premier League",
+        "startTime": "2026-09-06T20:00:00Z"
+      },
+      "market": {
+        "name": "Over/Under",
+        "type": "TOTAL_GOALS",
+        "line": 2.5
+      },
+      "selection": {
+        "type": "TOTAL_GOALS",
+        "name": "Over 2.5",
+        "value": null
+      }
+    }
+  ]
+}

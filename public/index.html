@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111827">
+<title>BetCode Pro</title>
+<link rel="stylesheet" href="/style.css">
+<link rel="manifest" href="/manifest.webmanifest">
+</head>
+
+<body>
+<main class="app">
+
+<header>
+  <div class="mark">↔</div>
+  <div>
+    <h1>BetCode Pro</h1>
+    <p>Convert booking codes safely.</p>
+  </div>
+</header>
+
+<!-- LOGIN -->
+<section class="card authCard" id="loginScreen">
+  <h2>Welcome back</h2>
+  <p class="muted">Log in to your BetCode Pro account.</p>
+
+  <label>Email</label>
+  <input id="loginEmail" type="email" placeholder="Enter your email">
+
+  <label>Password</label>
+<div class="passwordWrap">
+  <input id="loginPassword" type="password" placeholder="Enter your password">
+  <button type="button" class="togglePassword" data-target="loginPassword">👁️</button>
+</div>
+
+<button type="button" id="forgotPasswordBtn" class="forgotBtn">Forgot password?</button>
+  <button id="loginBtn">Log in</button>
+
+  <div id="loginStatus" class="status"></div>
+
+  <p class="switchText">
+    Don't have an account?
+    <button id="showRegister" class="linkBtn">Create account</button>
+  </p>
+</section>
+
+<!-- REGISTER -->
+<section class="card authCard hidden" id="registerScreen">
+  <h2>Create your account</h2>
+  <p class="muted">Enter your details to get started.</p>
+
+  <label>Full name</label>
+  <input id="registerName" type="text" placeholder="Your full name">
+
+  <label>Phone number</label>
+  <input id="registerPhone" type="tel" placeholder="08012345678">
+
+  <label>Email</label>
+  <input id="registerEmail" type="email" placeholder="you@example.com">
+
+  <label>Password</label>
+<div class="passwordWrap">
+  <input id="registerPassword" type="password" placeholder="At least 6 characters">
+  <button type="button" class="togglePassword" data-target="registerPassword">👁️</button>
+</div>
+  <label>Confirm password</label>
+<div class="passwordWrap">
+  <input id="registerConfirm" type="password" placeholder="Repeat your password">
+  <button type="button" class="togglePassword" data-target="registerConfirm">👁️</button>
+</div>
+  <button id="registerBtn">Create account</button>
+
+  <div id="registerStatus" class="status"></div>
+
+  <p class="switchText">
+    Already have an account?
+    <button id="showLogin" class="linkBtn">Log in</button>
+  </p>
+</section>
+
+<!-- MAIN APP -->
+<div id="mainApp" class="hidden">
+
+<section class="card account">
+  <div class="accountHead">
+    <div>
+      <h3>👤 My Account</h3>
+      <p id="accountName">User</p>
+      <p id="accountEmail" class="muted">Email</p>
+    </div>
+    <span id="accountState">Free · — conversions remaining</span>
+  </div>
+
+  <div class="accountDetails">
+    <div>
+      <small>Phone</small>
+      <b id="accountPhone">—</b>
+    </div>
+    <div>
+      <small>Status</small>
+      <b id="accountStatus">🟢 Logged in</b>
+    </div>
+  </div>
+
+  <button id="logout" class="secondary">Log out</button>
+</section>
+
+<section class="card nativeCard" id="nativeCreator">
+  <div class="resultTop">
+    <div>
+      <h2>Create BetCode Pro Code</h2>
+      <p class="muted">Create your own BetCode Pro code from a bet slip.</p>
+    </div>
+    <span class="nativeBadge">NATIVE</span>
+  </div>
+
+  <label>Source code label</label>
+  <input id="nativeSourceCode" placeholder="Optional reference, e.g. MY-SLIP-001">
+
+  <label>Home team</label>
+  <input id="nativeHome" placeholder="e.g. Arsenal">
+
+  <label>Away team</label>
+  <input id="nativeAway" placeholder="e.g. Chelsea">
+
+  <label>Competition</label>
+  <input id="nativeCompetition" placeholder="e.g. Premier League">
+
+  <label>Market</label>
+  <select id="nativeMarket">
+    <option value="1X2">Match Result (1X2)</option>
+    <option value="TOTAL_GOALS">Total Goals</option>
+  </select>
+
+  <label>Selection</label>
+  <select id="nativeSelection">
+    <option value="HOME">Home</option>
+    <option value="DRAW">Draw</option>
+    <option value="AWAY">Away</option>
+    <option value="OVER">Over</option>
+    <option value="UNDER">Under</option>
+  </select>
+
+  <label>Line <span class="muted">(optional)</span></label>
+  <input id="nativeLine" type="number" step="0.5" placeholder="e.g. 2.5">
+
+  <button id="nativeCreate">Create BetCode Pro code</button>
+  <div id="nativeStatus" class="status"></div>
+</section>
+
+<section id="nativeResult" class="card hidden">
+  <div class="resultTop">
+    <h2>Your BetCode Pro Code</h2>
+    <span class="success">CREATED</span>
+  </div>
+
+  <div id="nativeCode" class="resultCode">—</div>
+
+  <div class="actions">
+    <button id="nativeCopy">Copy</button>
+    <button id="nativeShare" class="secondary">Share</button>
+  </div>
+
+  <div class="stats">
+    <div>
+      <b id="nativeSelections">—</b>
+      <small>Selections</small>
+    </div>
+    <div>
+      <b id="nativeCredits">—</b>
+      <small>Credits left</small>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <div class="row">
+    <div>
+      <label>From</label>
+      <select id="from"></select>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <div>
+      <label>To</label>
+      <select id="to"></select>
+    </div>
+  </div>
+
+  <label>Booking code</label>
+
+  <div class="codeRow">
+    <input id="code" placeholder="Paste booking code">
+    <button id="paste" class="secondary">Paste</button>
+  </div>
+
+  <button id="convert">Convert code</button>
+
+  <div id="status"></div>
+</section>
+
+<section id="result" class="card hidden">
+  <div class="resultTop">
+    <h2>Converted code</h2>
+    <span id="badge"></span>
+  </div>
+
+  <div id="converted" class="resultCode">—</div>
+
+  <div class="actions">
+    <button id="copy">Copy</button>
+    <button id="share" class="secondary">Share</button>
+  </div>
+
+  <div class="stats">
+    <div>
+      <b id="events">—</b>
+      <small>Selections</small>
+    </div>
+
+    <div>
+      <b id="odds">—</b>
+      <small>Total odds</small>
+    </div>
+  </div>
+
+  <div id="warnings"></div>
+</section>
+
+<section class="card" id="historyCard">
+  <h3>Recent conversions</h3>
+  <div id="history">No conversions yet.</div>
+</section>
+
+<section class="card info">
+  <h3>Before you place the bet</h3>
+  <p>
+    Bookmaker odds and available markets can change.
+    Verify every selection and the final odds on the destination bookmaker.
+  </p>
+</section>
+
+</div>
+
+<footer>
+18+ · Gamble responsibly · Not affiliated with any bookmaker.
+</footer>
+
+</main>
+
+<script src="/app.js"></script>
+
+
+
+</body>
+</html>

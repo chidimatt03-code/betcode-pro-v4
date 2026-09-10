@@ -1,0 +1,9 @@
+{
+  "name":"BetCode Pro",
+  "short_name":"BetCode Pro",
+  "start_url":"/",
+  "display":"standalone",
+  "background_color":"#f5f7fa",
+  "theme_color":"#111827",
+  "description":"Cross-bookmaker booking-code converter"
+}
