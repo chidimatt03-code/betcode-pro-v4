@@ -6,3 +6,5 @@ node_modules/
 *.before_*
 betcode_full_suite.sh
 legacy_external/
+
+*.before*

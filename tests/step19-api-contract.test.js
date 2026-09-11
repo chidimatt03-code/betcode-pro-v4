@@ -1,7 +1,7 @@
 const assert=require("assert");
-const Database=require("better-sqlite3")("./data.db");
+const Database=require("better-sqlite3")(process.env.PORT==="3001" ? "./.production/data.db" : "./data.db");
 
-const BASE="http://127.0.0.1:3000";
+const BASE=`http://127.0.0.1:${process.env.PORT || 3000}`;
 const email=`step19-${Date.now()}@example.com`;
 const password="Step19-Test-Password-2026";
 
