@@ -389,13 +389,13 @@ async function auth(action){
   }
 
   button.disabled = true;
-button.innerHTML = action === "register"
-  ? '<span class="authSpinner"></span>Creating account...'
-  : '<span class="authSpinner"></span>Signing in...';
+  button.innerHTML = action === "register"
+    ? '<span class="authSpinner"></span>Creating account...'
+    : '<span class="authSpinner"></span>Signing in...';
+
   status.textContent = action === "register"
     ? "Creating your account..."
     : "Signing you in...";
-
   status.className = "status loading";
 
   try{
@@ -418,18 +418,32 @@ button.innerHTML = action === "register"
       throw new Error(d.message || "Authentication failed.");
     }
 
+    if(action === "register" && d.verificationRequired){
+      window.pendingVerificationEmail = email;
+
+      $("registerScreen").classList.add("hidden");
+      $("verificationScreen").classList.remove("hidden");
+      $("verificationEmail").textContent = d.email || email;
+      $("verificationCode").value = "";
+      $("verificationStatus").textContent =
+        "A 6-digit verification code has been sent to your email.";
+      $("verificationStatus").className = "status success";
+
+      startVerificationCountdown(d.expiresIn || 600);
+      $("verificationCode").focus();
+      return;
+    }
+
     localStorage.setItem("betcode_token",d.token);
 
     status.textContent = action === "register"
       ? "✓ Account created successfully!"
       : "✓ Login successful!";
-
     status.className = "status success";
 
     $("accountName").textContent = d.name || email.split("@")[0];
     $("accountEmail").textContent = d.email || email;
     $("accountPhone").textContent = d.phone || "Not provided";
-
     $("accountState").textContent =
       `${d.plan || "free"} · ${d.credits ?? 10} conversions remaining`;
     updateDashboard(d);
@@ -437,6 +451,7 @@ button.innerHTML = action === "register"
     setTimeout(()=>{
       $("loginScreen").classList.add("hidden");
       $("registerScreen").classList.add("hidden");
+      $("verificationScreen").classList.add("hidden");
       $("mainApp").classList.remove("hidden");
     },150);
 
@@ -445,11 +460,159 @@ button.innerHTML = action === "register"
     status.className = "status error";
   }finally{
     button.disabled = false;
-button.innerHTML = action === "register"
-  ? "Create account"
-  : "Log in";
+    button.innerHTML = action === "register"
+      ? "Create account"
+      : "Log in";
   }
 }
+
+let verificationTimer = null;
+window.pendingVerificationEmail = "";
+
+function startVerificationCountdown(seconds){
+  clearInterval(verificationTimer);
+
+  let remaining = Number(seconds) || 600;
+
+  const update = ()=>{
+    const minutes = Math.floor(remaining / 60);
+    const secs = remaining % 60;
+
+    $("verificationCountdown").textContent =
+      `Code expires in ${minutes}:${String(secs).padStart(2,"0")}`;
+
+    if(remaining <= 0){
+      clearInterval(verificationTimer);
+      $("verificationCountdown").textContent =
+        "Verification code expired. Please request a new code.";
+    }
+
+    remaining--;
+  };
+
+  update();
+  verificationTimer = setInterval(update,1000);
+}
+
+async function verifyRegistration(){
+  const email = window.pendingVerificationEmail;
+  const code = $("verificationCode").value.trim();
+  const status = $("verificationStatus");
+  const button = $("verifyBtn");
+
+  if(!email){
+    status.textContent =
+      "Verification session expired. Please start registration again.";
+    status.className = "status error";
+    return;
+  }
+
+  if(!/^\d{6}$/.test(code)){
+    status.textContent = "Please enter the 6-digit verification code.";
+    status.className = "status error";
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Verifying...";
+  status.textContent = "Verifying your code...";
+  status.className = "status loading";
+
+  try{
+    const r = await fetch("/api/register/verify",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({email,code})
+    });
+
+    const d = await r.json();
+
+    if(!r.ok){
+      throw new Error(d.message || "Verification failed.");
+    }
+
+    localStorage.setItem("betcode_token",d.token);
+    clearInterval(verificationTimer);
+
+    $("accountName").textContent = d.name || email.split("@")[0];
+    $("accountEmail").textContent = d.email || email;
+    $("accountPhone").textContent = d.phone || "Not provided";
+    $("accountState").textContent =
+      `${d.plan || "free"} · ${d.credits ?? 10} conversions remaining`;
+    updateDashboard(d);
+
+    status.textContent =
+      "✓ Email verified. Your account has been created.";
+    status.className = "status success";
+
+    setTimeout(()=>{
+      $("verificationScreen").classList.add("hidden");
+      $("mainApp").classList.remove("hidden");
+      window.pendingVerificationEmail = "";
+    },150);
+
+  }catch(e){
+    status.textContent = "✕ " + e.message;
+    status.className = "status error";
+  }finally{
+    button.disabled = false;
+    button.textContent = "Verify & Create Account";
+  }
+}
+
+async function resendVerification(){
+  const email = window.pendingVerificationEmail;
+  const status = $("verificationStatus");
+  const button = $("resendVerificationBtn");
+
+  if(!email){
+    status.textContent =
+      "Verification session expired. Please start registration again.";
+    status.className = "status error";
+    return;
+  }
+
+  button.disabled = true;
+  status.textContent = "Sending a new verification code...";
+  status.className = "status loading";
+
+  try{
+    const r = await fetch("/api/register/resend",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({email})
+    });
+
+    const d = await r.json();
+
+    if(!r.ok){
+      throw new Error(d.message || "Unable to resend verification code.");
+    }
+
+    $("verificationEmail").textContent = d.email || email;
+    status.textContent = "✓ A new verification code has been sent.";
+    status.className = "status success";
+    startVerificationCountdown(d.expiresIn || 600);
+
+  }catch(e){
+    status.textContent = "✕ " + e.message;
+    status.className = "status error";
+  }finally{
+    button.disabled = false;
+  }
+}
+
+$("verifyBtn").onclick=verifyRegistration;
+$("resendVerificationBtn").onclick=resendVerification;
+
+$("verificationBackBtn").onclick=()=>{
+  clearInterval(verificationTimer);
+  window.pendingVerificationEmail = "";
+  $("verificationScreen").classList.add("hidden");
+  $("registerScreen").classList.remove("hidden");
+  $("verificationStatus").textContent = "";
+  $("verificationCode").value = "";
+};
 
 $("showRegister").onclick=()=>{
   $("loginScreen").classList.add("hidden");
@@ -490,9 +653,7 @@ $("logout").onclick=async()=>{
   const t=localStorage.getItem("betcode_token");
 
   if(!t){
-    $("loginScreen").classList.remove("hidden");
-    $("registerScreen").classList.add("hidden");
-    $("mainApp").classList.add("hidden");
+    showPublicHome();
     return;
   }
 
@@ -522,6 +683,42 @@ $("logout").onclick=async()=>{
     console.log("Session check failed:",e);
   }
 })();
+
+
+/* =========================================================
+   PHASE 1 — PUBLIC HOMEPAGE NAVIGATION
+   ========================================================= */
+
+function showPublicHome(){
+  $("publicHome").classList.remove("hidden");
+  $("loginScreen").classList.add("hidden");
+  $("registerScreen").classList.add("hidden");
+  $("verificationScreen").classList.add("hidden");
+  $("mainApp").classList.add("hidden");
+}
+
+function showLoginScreen(){
+  $("publicHome").classList.add("hidden");
+  $("registerScreen").classList.add("hidden");
+  $("verificationScreen").classList.add("hidden");
+  $("mainApp").classList.add("hidden");
+  $("loginScreen").classList.remove("hidden");
+}
+
+function showRegisterScreen(){
+  $("publicHome").classList.add("hidden");
+  $("loginScreen").classList.add("hidden");
+  $("verificationScreen").classList.add("hidden");
+  $("mainApp").classList.add("hidden");
+  $("registerScreen").classList.remove("hidden");
+}
+
+$("homeLoginBtn").onclick=showLoginScreen;
+$("heroLogin").onclick=showLoginScreen;
+
+$("homeRegisterBtn").onclick=showRegisterScreen;
+$("heroGetStarted").onclick=showRegisterScreen;
+$("bottomGetStarted").onclick=showRegisterScreen;
 
 document.querySelectorAll(".togglePassword").forEach(btn=>{
   btn.onclick=()=>{

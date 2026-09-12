@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const path = require("path");
 const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 const Database = require("better-sqlite3")("./data.db");
 function hashPassword(password){
   const salt=crypto.randomBytes(16).toString("hex");
@@ -77,12 +78,92 @@ CREATE TABLE IF NOT EXISTS conversions (
   created_at TEXT,
   FOREIGN KEY(user_id) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS email_verifications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT NOT NULL,
+  name TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  code_hash TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  last_sent_at TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_email_verifications_email
+ON email_verifications(email);
 `);
 
 
 const app = express();
 
 const authRateLimits = new Map();
+
+const smtpTransport = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || "smtp.gmail.com",
+  port: Number(process.env.SMTP_PORT || 465),
+  secure: String(process.env.SMTP_SECURE || "true").toLowerCase() === "true",
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
+});
+
+function maskEmail(email){
+  const value=String(email||"");
+  const parts=value.split("@");
+  if(parts.length!==2)return "***";
+  const local=parts[0];
+  const visible=local.length<=2 ? local.slice(0,1) : local.slice(0,2);
+  return `${visible}***@${parts[1]}`;
+}
+
+function hashVerificationCode(code){
+  return crypto
+    .createHash("sha256")
+    .update(String(code))
+    .digest("hex");
+}
+
+function generateVerificationCode(){
+  return String(crypto.randomInt(100000,1000000));
+}
+
+async function sendVerificationEmail(email,code){
+  const from=process.env.SMTP_FROM || process.env.SMTP_USER;
+
+  if(!process.env.SMTP_USER || !process.env.SMTP_PASS || !from){
+    throw new Error("Email service is not configured.");
+  }
+
+  await smtpTransport.sendMail({
+    from: `"BetCode Pro" <${from}>`,
+    to: email,
+    subject: "Your BetCode Pro verification code",
+    text:
+`Your BetCode Pro verification code is ${code}.
+
+This code expires in 10 minutes.
+
+If you did not create a BetCode Pro account, you can ignore this email.`,
+    html:
+`<!doctype html>
+<html>
+<body style="margin:0;background:#f4f6f8;font-family:Arial,sans-serif;color:#17202a">
+  <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:14px;padding:32px;box-shadow:0 4px 18px rgba(0,0,0,.08)">
+    <div style="font-size:12px;font-weight:700;letter-spacing:1.5px;color:#667085">BETCODE PRO</div>
+    <h1 style="margin:12px 0 8px;font-size:26px">Verify your email</h1>
+    <p style="color:#667085;line-height:1.6">Use the verification code below to finish creating your BetCode Pro account.</p>
+    <div style="margin:28px 0;padding:18px;text-align:center;background:#f4f6f8;border-radius:10px;font-size:34px;font-weight:800;letter-spacing:8px">${code}</div>
+    <p style="color:#667085;line-height:1.6">This code expires in <strong>10 minutes</strong>.</p>
+    <p style="font-size:12px;color:#98a2b3;margin-top:28px">If you did not request this code, you can safely ignore this email.</p>
+  </div>
+</body>
+</html>`
+  });
+}
 
 function authRateLimit(req,res,next){
   const key=`${req.ip}:${req.path}`;
@@ -214,7 +295,7 @@ function authUser(req){
   }
 }
 
-app.post("/api/register", authRateLimit,(req,res)=>{
+app.post("/api/register", authRateLimit, async (req,res)=>{
  try{
   const name=String(req.body.name||"").trim();
   const phone=String(req.body.phone||"").trim();
@@ -233,15 +314,282 @@ app.post("/api/register", authRateLimit,(req,res)=>{
   if(password.length<6)
    return res.status(400).json({message:"Password must be at least 6 characters."});
 
-  const info=Database.prepare(
-   "INSERT INTO users(name,phone,email,password_hash,created_at) VALUES(?,?,?,?,?)"
-  ).run(name,phone,email,hashPassword(password),new Date().toISOString());
+  const existingUser=Database
+    .prepare("SELECT id FROM users WHERE email=?")
+    .get(email);
 
-  const token=createSession(Number(info.lastInsertRowid));
+  if(existingUser)
+   return res.status(409).json({
+     message:"An account with this email already exists. Please log in instead."
+   });
 
-  res.json({token,plan:"free",credits:Database.prepare("SELECT credits FROM users WHERE id=?").get(Number(info.lastInsertRowid)).credits,name,email});
+  const now=Date.now();
+  const existing=Database
+    .prepare(`
+      SELECT id,last_sent_at
+      FROM email_verifications
+      WHERE email=?
+      ORDER BY id DESC
+      LIMIT 1
+    `)
+    .get(email);
+
+  if(existing){
+    const lastSent=Date.parse(existing.last_sent_at);
+    if(Number.isFinite(lastSent) && now-lastSent<60*1000){
+      return res.status(429).json({
+        message:"A verification code was sent recently. Please wait before requesting another."
+      });
+    }
+  }
+
+  const code=generateVerificationCode();
+  const codeHash=hashVerificationCode(code);
+  const nowIso=new Date(now).toISOString();
+  const expiresIso=new Date(now+10*60*1000).toISOString();
+
+  Database.prepare("DELETE FROM email_verifications WHERE email=?")
+    .run(email);
+
+  Database.prepare(`
+    INSERT INTO email_verifications(
+      email,name,phone,password_hash,code_hash,
+      expires_at,attempts,last_sent_at,created_at
+    )
+    VALUES(?,?,?,?,?,?,?,?,?)
+  `).run(
+    email,
+    name,
+    phone,
+    hashPassword(password),
+    codeHash,
+    expiresIso,
+    0,
+    nowIso,
+    nowIso
+  );
+
+  try{
+    await sendVerificationEmail(email,code);
+  }catch(e){
+    Database.prepare("DELETE FROM email_verifications WHERE email=?")
+      .run(email);
+
+    console.error("Verification email delivery failed.");
+    return res.status(503).json({
+      message:"We could not send the verification email right now. Please try again."
+    });
+  }
+
+  res.json({
+    verificationRequired:true,
+    email:maskEmail(email),
+    expiresIn:600
+  });
+
  }catch(e){
-  res.status(409).json({message:"Account already exists or could not be created."});
+  console.error("Registration start failed.");
+  res.status(500).json({
+    message:"Unable to start registration. Please try again."
+  });
+ }
+});
+
+app.post("/api/register/verify", authRateLimit, (req,res)=>{
+ try{
+  const email=String(req.body.email||"").trim().toLowerCase();
+  const code=String(req.body.code||"").trim();
+
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
+   return res.status(400).json({message:"Please enter a valid email address."});
+
+  if(!/^\d{6}$/.test(code))
+   return res.status(400).json({message:"Please enter the 6-digit verification code."});
+
+  const pending=Database.prepare(`
+    SELECT *
+    FROM email_verifications
+    WHERE email=?
+    ORDER BY id DESC
+    LIMIT 1
+  `).get(email);
+
+  if(!pending)
+   return res.status(400).json({
+     message:"Your verification request was not found. Please start registration again."
+   });
+
+  if(Date.now()>Date.parse(pending.expires_at)){
+    Database.prepare("DELETE FROM email_verifications WHERE id=?")
+      .run(pending.id);
+
+    return res.status(400).json({
+      message:"That verification code has expired. Please request a new one."
+    });
+  }
+
+  if(pending.attempts>=5)
+   return res.status(429).json({
+     message:"Too many incorrect verification attempts. Please request a new code."
+   });
+
+  const suppliedHash=hashVerificationCode(code);
+
+  if(
+    suppliedHash.length!==pending.code_hash.length ||
+    !crypto.timingSafeEqual(
+      Buffer.from(suppliedHash,"hex"),
+      Buffer.from(pending.code_hash,"hex")
+    )
+  ){
+    Database.prepare(`
+      UPDATE email_verifications
+      SET attempts=attempts+1
+      WHERE id=?
+    `).run(pending.id);
+
+    return res.status(400).json({
+      message:"Incorrect verification code."
+    });
+  }
+
+  const existingUser=Database
+    .prepare("SELECT id FROM users WHERE email=?")
+    .get(email);
+
+  if(existingUser){
+    Database.prepare("DELETE FROM email_verifications WHERE id=?")
+      .run(pending.id);
+
+    return res.status(409).json({
+      message:"An account with this email already exists. Please log in instead."
+    });
+  }
+
+  const createUser=Database.transaction(()=>{
+    const info=Database.prepare(`
+      INSERT INTO users(
+        name,phone,email,password_hash,created_at
+      )
+      VALUES(?,?,?,?,?)
+    `).run(
+      pending.name,
+      pending.phone,
+      pending.email,
+      pending.password_hash,
+      new Date().toISOString()
+    );
+
+    Database.prepare("DELETE FROM email_verifications WHERE id=?")
+      .run(pending.id);
+
+    return Number(info.lastInsertRowid);
+  });
+
+  const userId=createUser();
+  const user=Database
+    .prepare("SELECT * FROM users WHERE id=?")
+    .get(userId);
+
+  const token=createSession(userId);
+
+  res.json({
+    token,
+    plan:user.plan,
+    credits:user.credits,
+    name:user.name,
+    phone:user.phone,
+    email:user.email
+  });
+
+ }catch(e){
+  console.error("Registration verification failed.");
+  res.status(500).json({
+    message:"Unable to complete registration. Please try again."
+  });
+ }
+});
+
+app.post("/api/register/resend", authRateLimit, async (req,res)=>{
+ try{
+  const email=String(req.body.email||"").trim().toLowerCase();
+
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
+   return res.status(400).json({message:"Please enter a valid email address."});
+
+  const pending=Database.prepare(`
+    SELECT *
+    FROM email_verifications
+    WHERE email=?
+    ORDER BY id DESC
+    LIMIT 1
+  `).get(email);
+
+  if(!pending)
+   return res.status(400).json({
+     message:"Your verification request was not found. Please start registration again."
+   });
+
+  const lastSent=Date.parse(pending.last_sent_at);
+  if(Number.isFinite(lastSent) && Date.now()-lastSent<60*1000){
+    return res.status(429).json({
+      message:"Please wait before requesting another verification code."
+    });
+  }
+
+  const code=generateVerificationCode();
+  const codeHash=hashVerificationCode(code);
+  const now=Date.now();
+
+  Database.prepare(`
+    UPDATE email_verifications
+    SET code_hash=?,
+        expires_at=?,
+        attempts=0,
+        last_sent_at=?
+    WHERE id=?
+  `).run(
+    codeHash,
+    new Date(now+10*60*1000).toISOString(),
+    new Date(now).toISOString(),
+    pending.id
+  );
+
+  try{
+    await sendVerificationEmail(email,code);
+  }catch(e){
+    Database.prepare(`
+      UPDATE email_verifications
+      SET code_hash=?,
+          expires_at=?,
+          attempts=?,
+          last_sent_at=?
+      WHERE id=?
+    `).run(
+      pending.code_hash,
+      pending.expires_at,
+      pending.attempts,
+      pending.last_sent_at,
+      pending.id
+    );
+
+    console.error("Verification resend failed.");
+    return res.status(503).json({
+      message:"We could not send a new verification email. Please try again."
+    });
+  }
+
+  res.json({
+    verificationRequired:true,
+    email:maskEmail(email),
+    expiresIn:600
+  });
+
+ }catch(e){
+  console.error("Verification resend failed.");
+  res.status(500).json({
+    message:"Unable to resend the verification code. Please try again."
+  });
  }
 });
 
