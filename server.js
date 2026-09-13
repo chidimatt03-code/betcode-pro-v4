@@ -3,7 +3,7 @@ const express = require("express");
 const path = require("path");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
-const Database = require("better-sqlite3")("./data.db");
+const Database = require("better-sqlite3")(path.join(__dirname,"data.db"));
 function hashPassword(password){
   const salt=crypto.randomBytes(16).toString("hex");
   const hash=crypto.scryptSync(String(password),salt,64,{
@@ -108,6 +108,8 @@ if(!userColumns.includes("reset_expires")){
 }
 
 const app = express();
+app.disable("x-powered-by");
+app.use((req,res,next)=>{ res.setHeader("X-Content-Type-Options","nosniff"); res.setHeader("X-Frame-Options","DENY"); res.setHeader("Referrer-Policy","no-referrer"); next(); });
 
 const authRateLimits = new Map();
 
