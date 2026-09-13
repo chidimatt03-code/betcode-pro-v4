@@ -1166,7 +1166,11 @@ async function bootstrapProductionAccount(){
     const existing=Database.prepare("SELECT id FROM users WHERE email=?").get(email);
 
     if(existing){
-      console.log("BOOTSTRAP_ACCOUNT: account already exists");
+      Database.prepare(
+        "UPDATE users SET password_hash=? WHERE id=?"
+      ).run(hashPassword(password),existing.id);
+
+      console.log("BOOTSTRAP_ACCOUNT: existing account password reset");
       return;
     }
 
