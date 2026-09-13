@@ -182,6 +182,16 @@ async function sendPasswordResetEmail(email,token){
     throw new Error("Email service is not configured.");
   }
 
+  console.log("SMTP_CONFIG_CHECK",JSON.stringify({
+    host:process.env.SMTP_HOST || null,
+    port:process.env.SMTP_PORT || null,
+    secure:process.env.SMTP_SECURE || null,
+    userConfigured:Boolean(process.env.SMTP_USER),
+    passConfigured:Boolean(process.env.SMTP_PASS),
+    fromConfigured:Boolean(process.env.SMTP_FROM),
+    appUrlConfigured:Boolean(process.env.APP_URL)
+  }));
+
   const baseUrl=process.env.APP_URL || "https://betcode-pro-v4.onrender.com";
   const resetUrl=`${baseUrl}/?reset_token=${encodeURIComponent(token)}`;
 
