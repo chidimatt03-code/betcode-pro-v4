@@ -97,6 +97,16 @@ ON email_verifications(email);
 `);
 
 
+const userColumns = Database.prepare("PRAGMA table_info(users)").all().map(row => row.name);
+
+if(!userColumns.includes("reset_token")){
+  Database.exec("ALTER TABLE users ADD COLUMN reset_token TEXT");
+}
+
+if(!userColumns.includes("reset_expires")){
+  Database.exec("ALTER TABLE users ADD COLUMN reset_expires TEXT");
+}
+
 const app = express();
 
 const authRateLimits = new Map();
