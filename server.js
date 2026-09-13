@@ -819,6 +819,12 @@ app.post("/api/forgot-password", authRateLimit,async(req,res)=>{
 
     const user=Database.prepare("SELECT id FROM users WHERE email=?").get(email);
 
+    console.log("PASSWORD_RESET_LOOKUP",JSON.stringify({
+      accountFound:Boolean(user),
+      smtpConfigured:Boolean(process.env.SMTP_USER && process.env.SMTP_PASS),
+      appUrlConfigured:Boolean(process.env.APP_URL)
+    }));
+
     // Always return the same message for security.
     if(user){
       const token=crypto.randomBytes(32).toString("hex");
