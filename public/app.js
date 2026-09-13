@@ -732,6 +732,7 @@ const resetParams=new URLSearchParams(window.location.search);
 const resetToken=resetParams.get("reset_token") || resetParams.get("token");
 
 if(resetToken){
+  $("publicHome")?.classList.add("hidden");
   $("loginScreen")?.classList.add("hidden");
   $("registerScreen")?.classList.add("hidden");
   $("resetPasswordScreen")?.classList.remove("hidden");
