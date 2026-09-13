@@ -1149,5 +1149,44 @@ app.post("/api/reset-password", authRateLimit,(req,res)=>{
     res.status(500).json({message:"Unable to reset password."});
   }
 });
+
+async function bootstrapProductionAccount(){
+  try{
+    if(String(process.env.BOOTSTRAP_ENABLED||"").toLowerCase()!=="true")
+      return;
+
+    const email=String(process.env.BOOTSTRAP_EMAIL||"").trim().toLowerCase();
+    const password=String(process.env.BOOTSTRAP_PASSWORD||"");
+
+    if(!email || password.length<6){
+      console.error("BOOTSTRAP_ACCOUNT: missing or invalid environment configuration");
+      return;
+    }
+
+    const existing=Database.prepare("SELECT id FROM users WHERE email=?").get(email);
+
+    if(existing){
+      console.log("BOOTSTRAP_ACCOUNT: account already exists");
+      return;
+    }
+
+    Database.prepare(
+      "INSERT INTO users (email,password_hash,plan,credits,created_at) VALUES (?,?,?,?,?)"
+    ).run(
+      email,
+      hashPassword(password),
+      "free",
+      5,
+      new Date().toISOString()
+    );
+
+    console.log("BOOTSTRAP_ACCOUNT: production account created");
+  }catch(e){
+    console.error("BOOTSTRAP_ACCOUNT_ERROR",e.message||"unknown error");
+  }
+}
+
+bootstrapProductionAccount();
+
 app.get("*",(req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
 app.listen(process.env.PORT||3000,()=>console.log("BetCode Pro running"));
