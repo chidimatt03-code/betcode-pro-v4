@@ -437,7 +437,7 @@ app.post("/api/register", authRateLimit, async (req,res)=>{
     Database.prepare("DELETE FROM email_verifications WHERE email=?")
       .run(email);
 
-    console.error("Verification email delivery failed.");
+    console.error("Verification email delivery failed:", e.code || "NO_CODE", e.responseCode || "NO_RESPONSE_CODE", e.message || "NO_MESSAGE");
     return res.status(503).json({
       message:"We could not send the verification email right now. Please try again."
     });
