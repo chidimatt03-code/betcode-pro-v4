@@ -91,6 +91,16 @@ CREATE TABLE IF NOT EXISTS conversions (
 `);
 
 
+const userColumns = Database.prepare("PRAGMA table_info(users)").all().map(row => row.name);
+
+if(!userColumns.includes("reset_token")){
+  Database.exec("ALTER TABLE users ADD COLUMN reset_token TEXT");
+}
+
+if(!userColumns.includes("reset_expires")){
+  Database.exec("ALTER TABLE users ADD COLUMN reset_expires TEXT");
+}
+
 const app = express();
 app.disable("x-powered-by");
 app.use((req,res,next)=>{ res.setHeader("X-Content-Type-Options","nosniff"); res.setHeader("X-Frame-Options","DENY"); res.setHeader("Referrer-Policy","no-referrer"); next(); });
