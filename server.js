@@ -816,7 +816,12 @@ app.post("/api/forgot-password", authRateLimit,async(req,res)=>{
         "UPDATE users SET reset_token=?, reset_expires=? WHERE id=?"
       ).run(token,expires,user.id);
 
-      await sendPasswordResetEmail(email,token);
+      try{
+        await sendPasswordResetEmail(email,token);
+      }catch(mailError){
+        console.error("PASSWORD_RESET_EMAIL_ERROR",mailError.code || "NO_CODE",mailError.message || "NO_MESSAGE");
+        throw mailError;
+      }
     }
 
     res.json({
