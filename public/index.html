@@ -333,6 +333,35 @@
   </p>
 </section>
 
+<section class="card authCard hidden" id="resetPasswordScreen">
+  <div class="authIntro">
+    <span class="eyebrow">PASSWORD RESET</span>
+    <h2>Choose a new password.</h2>
+    <p class="muted">Enter a new password for your BetCode Pro account.</p>
+  </div>
+
+  <label>New password</label>
+  <div class="passwordWrap">
+    <input id="resetPassword" type="password" placeholder="Enter new password" autocomplete="new-password">
+    <button type="button" class="togglePassword" data-target="resetPassword">👁️</button>
+  </div>
+
+  <label>Confirm password</label>
+  <div class="passwordWrap">
+    <input id="resetPasswordConfirm" type="password" placeholder="Confirm new password" autocomplete="new-password">
+    <button type="button" class="togglePassword" data-target="resetPasswordConfirm">👁️</button>
+  </div>
+
+  <button id="resetPasswordBtn">Reset password</button>
+
+  <div id="resetPasswordStatus" class="status"></div>
+
+  <p class="switchText">
+    Remember your password?
+    <button id="backToLoginFromReset" class="linkBtn">Log in</button>
+  </p>
+</section>
+
 <section class="card authCard hidden" id="registerScreen">
   <div class="authIntro">
     <span class="eyebrow">GET STARTED</span>

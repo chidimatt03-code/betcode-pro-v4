@@ -165,6 +165,48 @@ If you did not create a BetCode Pro account, you can ignore this email.`,
   });
 }
 
+async function sendPasswordResetEmail(email,token){
+  const from=process.env.SMTP_FROM || process.env.SMTP_USER;
+
+  if(!process.env.SMTP_USER || !process.env.SMTP_PASS || !from){
+    throw new Error("Email service is not configured.");
+  }
+
+  const baseUrl=process.env.APP_URL || "https://betcode-pro-v4.onrender.com";
+  const resetUrl=`${baseUrl}/?reset_token=${encodeURIComponent(token)}`;
+
+  await smtpTransport.sendMail({
+    from: `"BetCode Pro" <${from}>`,
+    to: email,
+    subject: "Reset your BetCode Pro password",
+    text:
+`We received a request to reset your BetCode Pro password.
+
+Open this link to choose a new password:
+${resetUrl}
+
+This reset link expires in 15 minutes.
+
+If you did not request a password reset, you can safely ignore this email.`,
+    html:
+`<!doctype html>
+<html>
+<body style="margin:0;background:#f4f6f8;font-family:Arial,sans-serif;color:#17202a">
+  <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:14px;padding:32px;box-shadow:0 4px 18px rgba(0,0,0,.08)">
+    <div style="font-size:12px;font-weight:700;letter-spacing:1.5px;color:#667085">BETCODE PRO</div>
+    <h1 style="margin:12px 0 8px;font-size:26px">Reset your password</h1>
+    <p style="color:#667085;line-height:1.6">We received a request to reset your BetCode Pro password.</p>
+    <p style="margin:28px 0">
+      <a href="${resetUrl}" style="display:inline-block;padding:14px 22px;background:#111827;color:#fff;text-decoration:none;border-radius:10px;font-weight:700">Reset Password</a>
+    </p>
+    <p style="color:#667085;line-height:1.6">This link expires in <strong>15 minutes</strong>.</p>
+    <p style="font-size:12px;color:#98a2b3;margin-top:28px">If you did not request a password reset, you can safely ignore this email.</p>
+  </div>
+</body>
+</html>`
+  });
+}
+
 function authRateLimit(req,res,next){
   const key=`${req.ip}:${req.path}`;
   const now=Date.now();
@@ -746,7 +788,7 @@ app.post("/api/api-keys/:id/revoke",(req,res)=>{
 
 app.get("/api/bookmakers",(req,res)=>res.json(Object.entries(BOOKMAKERS).map(([key,v])=>({key,...v}))));
 
-app.post("/api/forgot-password", authRateLimit,(req,res)=>{
+app.post("/api/forgot-password", authRateLimit,async(req,res)=>{
   try{
     const email=String(req.body.email||"").trim().toLowerCase();
 
@@ -764,7 +806,7 @@ app.post("/api/forgot-password", authRateLimit,(req,res)=>{
         "UPDATE users SET reset_token=?, reset_expires=? WHERE id=?"
       ).run(token,expires,user.id);
 
-      // Reset token is intentionally not logged.
+      await sendPasswordResetEmail(email,token);
     }
 
     res.json({

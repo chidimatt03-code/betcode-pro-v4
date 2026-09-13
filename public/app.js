@@ -728,6 +728,88 @@ document.querySelectorAll(".togglePassword").forEach(btn=>{
   };
 });
 
+const resetParams=new URLSearchParams(window.location.search);
+const resetToken=resetParams.get("reset_token") || resetParams.get("token");
+
+if(resetToken){
+  $("loginScreen")?.classList.add("hidden");
+  $("registerScreen")?.classList.add("hidden");
+  $("resetPasswordScreen")?.classList.remove("hidden");
+}
+
+$("resetPasswordBtn")?.addEventListener("click",async()=>{
+  const password=$("resetPassword").value;
+  const confirm=$("resetPasswordConfirm").value;
+  const status=$("resetPasswordStatus");
+  const button=$("resetPasswordBtn");
+
+  if(!resetToken){
+    status.textContent="✕ This reset link is missing or invalid.";
+    status.className="status error";
+    return;
+  }
+
+  if(!password || !confirm){
+    status.textContent="Please enter and confirm your new password.";
+    status.className="status error";
+    return;
+  }
+
+  if(password.length<6){
+    status.textContent="Password must be at least 6 characters.";
+    status.className="status error";
+    return;
+  }
+
+  if(password!==confirm){
+    status.textContent="Passwords do not match.";
+    status.className="status error";
+    return;
+  }
+
+  button.disabled=true;
+  button.textContent="Resetting...";
+  status.textContent="Resetting your password...";
+  status.className="status loading";
+
+  try{
+    const r=await fetch("/api/reset-password",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({token:resetToken,password})
+    });
+
+    const d=await r.json();
+
+    if(!r.ok)throw new Error(d.message||"Unable to reset password.");
+
+    status.textContent="✓ "+d.message;
+    status.className="status success";
+
+    $("resetPassword").value="";
+    $("resetPasswordConfirm").value="";
+
+    setTimeout(()=>{
+      $("resetPasswordScreen").classList.add("hidden");
+      $("loginScreen").classList.remove("hidden");
+      $("loginStatus").textContent="";
+      history.replaceState({},document.title,window.location.pathname);
+    },1200);
+
+  }catch(e){
+    status.textContent="✕ "+e.message;
+    status.className="status error";
+  }finally{
+    button.disabled=false;
+    button.textContent="Reset password";
+  }
+});
+
+$("backToLoginFromReset")?.addEventListener("click",()=>{
+  $("resetPasswordScreen").classList.add("hidden");
+  $("loginScreen").classList.remove("hidden");
+});
+
 $("forgotPasswordBtn").onclick=async()=>{
   const email=prompt("Enter the email address on your BetCode Pro account:");
 
