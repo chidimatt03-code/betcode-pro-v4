@@ -333,6 +333,26 @@
   </p>
 </section>
 
+<section class="card authCard hidden" id="forgotPasswordScreen">
+  <div class="authIntro">
+    <span class="eyebrow">PASSWORD RECOVERY</span>
+    <h2>Reset your password.</h2>
+    <p class="muted">Enter the email address linked to your BetCode Pro account and we’ll send you a reset link.</p>
+  </div>
+
+  <label>Email</label>
+  <input id="forgotEmail" type="email" placeholder="Enter your email" autocomplete="email">
+
+  <button id="sendForgotPasswordBtn">Send reset link</button>
+
+  <div id="forgotPasswordStatus" class="status"></div>
+
+  <p class="switchText">
+    Remember your password?
+    <button id="backToLoginFromForgot" class="linkBtn">Log in</button>
+  </p>
+</section>
+
 <section class="card authCard hidden" id="resetPasswordScreen">
   <div class="authIntro">
     <span class="eyebrow">PASSWORD RESET</span>

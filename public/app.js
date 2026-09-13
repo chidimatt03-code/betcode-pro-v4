@@ -810,12 +810,39 @@ $("backToLoginFromReset")?.addEventListener("click",()=>{
   $("loginScreen").classList.remove("hidden");
 });
 
-$("forgotPasswordBtn").onclick=async()=>{
-  const email=prompt("Enter the email address on your BetCode Pro account:");
+function showForgotPasswordScreen(){
+  $("publicHome").classList.add("hidden");
+  $("loginScreen").classList.add("hidden");
+  $("registerScreen").classList.add("hidden");
+  $("verificationScreen").classList.add("hidden");
+  $("resetPasswordScreen").classList.add("hidden");
+  $("mainApp").classList.add("hidden");
+  $("forgotPasswordScreen").classList.remove("hidden");
+  $("forgotEmail").focus();
+}
 
-  if(!email)return;
+$("forgotPasswordBtn").onclick=showForgotPasswordScreen;
 
-  const status=$("loginStatus");
+$("backToLoginFromForgot").onclick=()=>{
+  $("forgotPasswordScreen").classList.add("hidden");
+  $("loginScreen").classList.remove("hidden");
+  $("forgotPasswordStatus").textContent="";
+  $("forgotEmail").value="";
+};
+
+$("sendForgotPasswordBtn").onclick=async()=>{
+  const email=$("forgotEmail").value.trim();
+  const status=$("forgotPasswordStatus");
+  const button=$("sendForgotPasswordBtn");
+
+  if(!email){
+    status.textContent="Please enter your email address.";
+    status.className="status error";
+    return;
+  }
+
+  button.disabled=true;
+  button.textContent="Sending...";
   status.textContent="Sending password reset request...";
   status.className="status loading";
 
@@ -823,7 +850,7 @@ $("forgotPasswordBtn").onclick=async()=>{
     const r=await fetch("/api/forgot-password",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({email:email.trim()})
+      body:JSON.stringify({email})
     });
 
     const d=await r.json();
@@ -835,6 +862,9 @@ $("forgotPasswordBtn").onclick=async()=>{
   }catch(e){
     status.textContent="✕ "+e.message;
     status.className="status error";
+  }finally{
+    button.disabled=false;
+    button.textContent="Send reset link";
   }
 };
 
