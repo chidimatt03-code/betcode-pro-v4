@@ -125,6 +125,8 @@ if(!userColumns.includes("reset_expires")){
   Database.exec("ALTER TABLE users ADD COLUMN reset_expires TEXT");
 }
 
+console.log("PRODUCTION_DB_CHECK",JSON.stringify({dbPath:path.join(__dirname,"data.db"),userCount:Database.prepare("SELECT COUNT(*) AS count FROM users").get().count}));
+
 const app = express();
 app.disable("x-powered-by");
 app.use((req,res,next)=>{ res.setHeader("X-Content-Type-Options","nosniff"); res.setHeader("X-Frame-Options","DENY"); res.setHeader("Referrer-Policy","no-referrer"); next(); });
