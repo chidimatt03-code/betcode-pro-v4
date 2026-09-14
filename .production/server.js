@@ -128,6 +128,18 @@ if(!userColumns.includes("reset_expires")){
 
 console.log("PRODUCTION_DB_CHECK",JSON.stringify({dbPath:path.join(__dirname,"data.db"),userCount:Database.prepare("SELECT COUNT(*) AS count FROM users").get().count}));
 
+const { initSchema } = require("./schema");
+
+initSchema().then(async () => {
+  const db = require("./db");
+  const result = await db.query("SELECT COUNT(*)::int AS count FROM users");
+  console.log("POSTGRES_CONNECTION_OK");
+  console.log("POSTGRES_SCHEMA_OK");
+  console.log("POSTGRES_USER_COUNT", result.rows[0].count);
+}).catch(error => {
+  console.error("POSTGRES_TEST_FAILED", error.code || "NO_CODE", error.message || "NO_MESSAGE");
+});
+
 const app = express();
 app.disable("x-powered-by");
 app.use((req,res,next)=>{ res.setHeader("X-Content-Type-Options","nosniff"); res.setHeader("X-Frame-Options","DENY"); res.setHeader("Referrer-Policy","no-referrer"); next(); });
