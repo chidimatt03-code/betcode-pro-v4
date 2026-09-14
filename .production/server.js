@@ -186,6 +186,7 @@ If you did not create a BetCode Pro account, you can ignore this email.`,
 }
 
 async function sendPasswordResetEmail(email,token){
+  console.log("PASSWORD_RESET_SMTP_CHECK",JSON.stringify({smtpUserConfigured:Boolean(process.env.SMTP_USER),smtpPassConfigured:Boolean(process.env.SMTP_PASS),smtpFromConfigured:Boolean(process.env.SMTP_FROM),appUrlConfigured:Boolean(process.env.APP_URL)}));
   const from=process.env.SMTP_FROM || process.env.SMTP_USER;
 
   if(!process.env.SMTP_USER || !process.env.SMTP_PASS || !from){
@@ -195,6 +196,7 @@ async function sendPasswordResetEmail(email,token){
   const baseUrl=process.env.APP_URL || "https://betcode-pro-v4.onrender.com";
   const resetUrl=`${baseUrl}/?reset_token=${encodeURIComponent(token)}`;
 
+  console.log("PASSWORD_RESET_SEND_START",JSON.stringify({to:email}));
   await smtpTransport.sendMail({
     from: `"BetCode Pro" <${from}>`,
     to: email,
@@ -829,11 +831,12 @@ app.post("/api/forgot-password", authRateLimit,async(req,res)=>{
       await sendPasswordResetEmail(email,token);
     }
 
+    console.log("PASSWORD_RESET_SEND_SUCCESS",JSON.stringify({accountFound:Boolean(user)}));
     res.json({
       message:"If an account exists with that email, a password reset link has been generated."
     });
   }catch(e){
-    console.error(e);
+    console.error("PASSWORD_RESET_SEND_FAILED",e.code||"NO_CODE",e.responseCode||"",e.message||"NO_MESSAGE");
     res.status(500).json({message:"Unable to process your request."});
   }
 });
