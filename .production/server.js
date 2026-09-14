@@ -5,6 +5,54 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 console.log("POSTGRES_ENV_CHECK",JSON.stringify({databaseUrlConfigured:Boolean(process.env.DATABASE_URL)}));
 const Database = require("better-sqlite3")(path.join(__dirname,"data.db"));
+
+async function persistUserToPostgres(userId){
+  try{
+    const db=require("./db");
+    const user=Database.prepare(
+      "SELECT * FROM users WHERE id=?"
+    ).get(userId);
+
+    if(!user)return;
+
+    await db.query(`
+      INSERT INTO users
+        (name,phone,email,password_hash,plan,credits,created_at,reset_token,reset_expires)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+      ON CONFLICT (email) DO UPDATE SET
+        name=EXCLUDED.name,
+        phone=EXCLUDED.phone,
+        password_hash=EXCLUDED.password_hash,
+        plan=EXCLUDED.plan,
+        credits=EXCLUDED.credits,
+        created_at=EXCLUDED.created_at,
+        reset_token=EXCLUDED.reset_token,
+        reset_expires=EXCLUDED.reset_expires
+    `,[
+      user.name||null,
+      user.phone||null,
+      user.email,
+      user.password_hash,
+      user.plan||"free",
+      Number(user.credits??10),
+      user.created_at||new Date().toISOString(),
+      user.reset_token||null,
+      user.reset_expires||null
+    ]);
+
+    console.log("USER_POSTGRES_PERSIST_OK",JSON.stringify({
+      userId:user.id,
+      email:user.email
+    }));
+  }catch(error){
+    console.error(
+      "USER_POSTGRES_PERSIST_FAILED",
+      error.code||"NO_CODE",
+      error.message||"NO_MESSAGE"
+    );
+  }
+}
+
 const smtpTransport = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.gmail.com",
   port: Number(process.env.SMTP_PORT || 465),
@@ -136,9 +184,136 @@ initSchema().then(async () => {
   console.log("POSTGRES_CONNECTION_OK");
   console.log("POSTGRES_SCHEMA_OK");
   console.log("POSTGRES_USER_COUNT", result.rows[0].count);
+
+  if(result.rows[0].count > 0){
+    await syncUsersFromPostgres();
+  }else{
+    await syncUsersToPostgres();
+  }
 }).catch(error => {
   console.error("POSTGRES_TEST_FAILED", error.code || "NO_CODE", error.message || "NO_MESSAGE");
 });
+
+
+async function postgresUpsertUser(user){
+  const db = require("./db");
+  await db.query(`
+    INSERT INTO users
+      (email,password_hash,plan,credits,created_at,name,phone,reset_token,reset_expires)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+    ON CONFLICT (email) DO UPDATE SET
+      password_hash=EXCLUDED.password_hash,
+      plan=EXCLUDED.plan,
+      credits=EXCLUDED.credits,
+      name=EXCLUDED.name,
+      phone=EXCLUDED.phone,
+      reset_token=EXCLUDED.reset_token,
+      reset_expires=EXCLUDED.reset_expires
+  `,[
+    user.email,
+    user.password_hash,
+    user.plan || "free",
+    Number(user.credits ?? 10),
+    user.created_at || new Date().toISOString(),
+    user.name || null,
+    user.phone || null,
+    user.reset_token || null,
+    user.reset_expires || null
+  ]);
+}
+
+async function syncUsersFromPostgres(){
+  try{
+    const db = require("./db");
+    const result = await db.query(`
+      SELECT id,email,password_hash,plan,credits,created_at,
+             name,phone,reset_token,reset_expires
+      FROM users
+      ORDER BY id
+    `);
+
+    for(const user of result.rows){
+      const existing = Database.prepare(
+        "SELECT id FROM users WHERE email=?"
+      ).get(user.email);
+
+      if(existing){
+        Database.prepare(`
+          UPDATE users
+          SET password_hash=?,
+              plan=?,
+              credits=?,
+              created_at=?,
+              name=?,
+              phone=?,
+              reset_token=?,
+              reset_expires=?
+          WHERE email=?
+        `).run(
+          user.password_hash,
+          user.plan || "free",
+          Number(user.credits ?? 10),
+          user.created_at,
+          user.name || null,
+          user.phone || null,
+          user.reset_token || null,
+          user.reset_expires || null,
+          user.email
+        );
+      }else{
+        Database.prepare(`
+          INSERT INTO users
+            (email,password_hash,plan,credits,created_at,name,phone,reset_token,reset_expires)
+          VALUES (?,?,?,?,?,?,?,?,?)
+        `).run(
+          user.email,
+          user.password_hash,
+          user.plan || "free",
+          Number(user.credits ?? 10),
+          user.created_at,
+          user.name || null,
+          user.phone || null,
+          user.reset_token || null,
+          user.reset_expires || null
+        );
+      }
+    }
+
+    console.log("POSTGRES_TO_SQLITE_SYNC_OK",JSON.stringify({
+      users:result.rows.length
+    }));
+  }catch(error){
+    console.error(
+      "POSTGRES_TO_SQLITE_SYNC_FAILED",
+      error.code || "NO_CODE",
+      error.message || "NO_MESSAGE"
+    );
+  }
+}
+
+async function syncUsersToPostgres(){
+  try{
+    const users = Database.prepare(`
+      SELECT id,email,password_hash,plan,credits,created_at,
+             name,phone,reset_token,reset_expires
+      FROM users
+    `).all();
+
+    for(const user of users){
+      await postgresUpsertUser(user);
+    }
+
+    console.log("SQLITE_TO_POSTGRES_SYNC_OK",JSON.stringify({
+      users:users.length
+    }));
+  }catch(error){
+    console.error(
+      "SQLITE_TO_POSTGRES_SYNC_FAILED",
+      error.code || "NO_CODE",
+      error.message || "NO_MESSAGE"
+    );
+  }
+}
 
 const app = express();
 app.disable("x-powered-by");
@@ -474,7 +649,7 @@ app.post("/api/register", authRateLimit, async (req,res)=>{
  }
 });
 
-app.post("/api/register/verify", authRateLimit, (req,res)=>{
+app.post("/api/register/verify", authRateLimit, async (req,res)=>{
  try{
   const email=String(req.body.email||"").trim().toLowerCase();
   const code=String(req.body.code||"").trim();
@@ -569,6 +744,8 @@ app.post("/api/register/verify", authRateLimit, (req,res)=>{
   const user=Database
     .prepare("SELECT * FROM users WHERE id=?")
     .get(userId);
+
+  await persistUserToPostgres(userId);
 
   const token=createSession(userId);
 
@@ -842,6 +1019,8 @@ app.post("/api/forgot-password", authRateLimit,async(req,res)=>{
       Database.prepare(
         "UPDATE users SET reset_token=?, reset_expires=? WHERE id=?"
       ).run(token,expires,user.id);
+
+      await persistUserToPostgres(user.id);
 
       await sendPasswordResetEmail(email,token);
     }
@@ -1135,7 +1314,7 @@ app.post("/api/convert",async(req,res)=>{
   }
 });
 
-app.post("/api/reset-password", authRateLimit,(req,res)=>{
+app.post("/api/reset-password", authRateLimit,async(req,res)=>{
   try{
     const token=String(req.body.token||"").trim();
     const password=String(req.body.password||"");
@@ -1153,6 +1332,8 @@ app.post("/api/reset-password", authRateLimit,(req,res)=>{
     Database.prepare(
       "UPDATE users SET password_hash=?, reset_token=NULL, reset_expires=NULL WHERE id=?"
     ).run(hashPassword(password),user.id);
+
+    await persistUserToPostgres(user.id);
 
     res.json({message:"Password reset successfully. You can now log in."});
   }catch(e){
