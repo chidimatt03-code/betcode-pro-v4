@@ -9,7 +9,8 @@
     "better-sqlite3": "^11.8.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "nodemailer": "^10.0.7"
+    "nodemailer": "^10.0.7",
+    "pg": "^8.23.0"
   },
   "allowScripts": {
     "better-sqlite3@11.10.0": true

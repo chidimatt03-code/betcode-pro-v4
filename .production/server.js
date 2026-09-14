@@ -3,6 +3,7 @@ const express = require("express");
 const path = require("path");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
+console.log("POSTGRES_ENV_CHECK",JSON.stringify({databaseUrlConfigured:Boolean(process.env.DATABASE_URL)}));
 const Database = require("better-sqlite3")(path.join(__dirname,"data.db"));
 const smtpTransport = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.gmail.com",
