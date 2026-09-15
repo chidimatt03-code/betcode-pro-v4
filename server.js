@@ -194,7 +194,7 @@ async function sendPasswordResetEmail(email,token){
     appUrlConfigured:Boolean(process.env.APP_URL)
   }));
 
-  const baseUrl=process.env.APP_URL || "https://betcode-pro-v4.onrender.com";
+  const baseUrl=process.env.APP_URL || "http://127.0.0.1:3000";
   const resetUrl=`${baseUrl}/?reset_token=${encodeURIComponent(token)}`;
 
   await smtpTransport.sendMail({

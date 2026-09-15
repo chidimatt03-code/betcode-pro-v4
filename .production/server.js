@@ -397,7 +397,7 @@ async function sendPasswordResetEmail(email,token){
     throw new Error("Email service is not configured.");
   }
 
-  const baseUrl=process.env.APP_URL || "https://betcode-pro-v4.onrender.com";
+  const baseUrl=process.env.APP_URL || "http://127.0.0.1:3000";
   const resetUrl=`${baseUrl}/?reset_token=${encodeURIComponent(token)}`;
 
   console.log("PASSWORD_RESET_SEND_START",JSON.stringify({to:email}));
