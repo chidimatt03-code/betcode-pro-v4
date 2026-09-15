@@ -3,6 +3,8 @@ const express = require("express");
 const path = require("path");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
+const dns = require("dns");
+dns.setDefaultResultOrder("ipv4first");
 console.log("POSTGRES_ENV_CHECK",JSON.stringify({databaseUrlConfigured:Boolean(process.env.DATABASE_URL)}));
 const Database = require("better-sqlite3")(path.join(__dirname,"data.db"));
 
