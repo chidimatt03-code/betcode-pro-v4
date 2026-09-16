@@ -1,4 +1,5 @@
 const { createDestinationAdapter } = require("./destinationAdapter");
+const { addToBetSlip, getStatoCoupon } = require("./bookmakers/bet9jaCouponWs");
 
 function notImplemented(bookmaker) {
   return async function () {
@@ -16,7 +17,43 @@ const adapters = {
 
   bet9ja: createDestinationAdapter({
     bookmaker: "bet9ja",
-    createBookingCode: notImplemented("Bet9ja")
+    createBookingCode: async function (destinationSlip) {
+      if (!destinationSlip || !destinationSlip.success) {
+        throw new Error("Destination slip is not ready.");
+      }
+
+      if (
+        !destinationSlip.bet9ja ||
+        typeof destinationSlip.bet9ja.message !== "string" ||
+        !destinationSlip.bet9ja.message.trim()
+      ) {
+        throw new Error(
+          "Bet9ja destination slip requires an authorized CouponWS message."
+        );
+      }
+
+      if (!Number.isInteger(Number(destinationSlip.bet9ja.subEventId))) {
+        throw new Error(
+          "Bet9ja destination slip requires a valid subEventId."
+        );
+      }
+
+      const result = await addToBetSlip({
+        message: destinationSlip.bet9ja.message,
+        betBuilderInfo: destinationSlip.bet9ja.betBuilderInfo || "",
+        subEventId: Number(destinationSlip.bet9ja.subEventId)
+      });
+
+      return {
+        success: result.success === true,
+        status: result.success === true ? "created" : "rejected",
+        bookmaker: "bet9ja",
+        code: null,
+        officialInterface: "CouponWS",
+        bookingCodeCreationSupported: false,
+        couponResult: result
+      };
+    }
   }),
 
   betking: createDestinationAdapter({
