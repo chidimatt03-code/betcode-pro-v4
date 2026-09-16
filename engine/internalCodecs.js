@@ -66,11 +66,15 @@ function internalCodecStatus(bookmaker) {
     };
   }
 
+  const codec = codecs[key];
+
   return {
     bookmaker: key,
-    available: Boolean(codecs[key]),
+    available: false,
     internal: true,
-    canonical: false
+    canonical: false,
+    registered: Boolean(codec),
+    implemented: false
   };
 }
 

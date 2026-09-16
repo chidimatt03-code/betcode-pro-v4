@@ -260,6 +260,23 @@ app.get("/api/health", (req, res) => {
 });
 
 const { internalCodecStatus } = require("./engine/internalCodecs");
+const { connectorStatus } = require("./engine/authorizedConnector");
+
+function publicConnectorStatus(bookmaker) {
+  const internal = internalCodecStatus(bookmaker);
+  const authorized = connectorStatus(bookmaker);
+
+  return {
+    bookmaker,
+    internal: internal.internal === true,
+    registered: internal.registered === true,
+    implemented: internal.implemented === true,
+    canonical: internal.canonical === true,
+    authorizedConfigured: authorized.configured === true,
+    liveDecode: false,
+    liveCreate: false
+  };
+}
 
 app.get("/api/connectors/status", (req, res) => {
   const user = authUser(req) || apiKeyUser(req);
@@ -274,15 +291,9 @@ app.get("/api/connectors/status", (req, res) => {
   res.json({
     ok: true,
     connectors: {
-      sportybet: {
-        ...internalCodecStatus("sportybet")
-      },
-      bet9ja: {
-        ...internalCodecStatus("bet9ja")
-      },
-      betking: {
-        ...internalCodecStatus("betking")
-      }
+      sportybet: publicConnectorStatus("sportybet"),
+      bet9ja: publicConnectorStatus("bet9ja"),
+      betking: publicConnectorStatus("betking")
     }
   });
 });

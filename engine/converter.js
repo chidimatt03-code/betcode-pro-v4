@@ -1,8 +1,19 @@
+const {
+  createUniversalBetModel,
+  validateUniversalBetModel
+} = require("./universalBetModel");
+
 function createBetSlip({
   sourceBookmaker,
   sourceCode,
   selections = []
 }) {
+  return createUniversalBetModel({
+    sourceBookmaker,
+    sourceCode,
+    selections
+  }); /* selections are normalized by the Universal Bet Model */
+  /*
   return {
     version: 1,
     source: {
@@ -34,9 +45,14 @@ function createBetSlip({
       }
     }))
   };
+  */
 }
 
 function validateBetSlip(slip) {
+  const universalErrors = validateUniversalBetModel(slip);
+  if (universalErrors.length) {
+    return universalErrors;
+  }
   const errors = [];
 
   if (!slip || typeof slip !== "object") {
