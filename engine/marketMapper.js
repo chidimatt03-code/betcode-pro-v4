@@ -14,6 +14,7 @@ const MARKET_ALIASES = {
   "home draw away": "1X2",
 
   "over under": "TOTAL_GOALS",
+  "overunder": "TOTAL_GOALS",
   "total goals": "TOTAL_GOALS",
   "goals over under": "TOTAL_GOALS",
 
@@ -25,7 +26,14 @@ const MARKET_ALIASES = {
   "asian handicap": "ASIAN_HANDICAP",
   "handicap": "HANDICAP",
 
-  "draw no bet": "DRAW_NO_BET"
+  "draw no bet": "DRAW_NO_BET",
+
+  "home wins either half": "WIN_EITHER_HALF",
+  "home team wins either half": "WIN_EITHER_HALF",
+  "away wins either half": "WIN_EITHER_HALF",
+  "away team wins either half": "WIN_EITHER_HALF",
+  "1x2 1up": "1X2_1UP",
+  "1x2 2up": "1X2_2UP"
 };
 
 function mapMarketType(name, type) {
@@ -46,7 +54,10 @@ function isSupportedMarket(type) {
     "DOUBLE_CHANCE",
     "ASIAN_HANDICAP",
     "HANDICAP",
-    "DRAW_NO_BET"
+    "DRAW_NO_BET",
+    "WIN_EITHER_HALF",
+    "1X2_1UP",
+    "1X2_2UP"
   ].includes(type);
 }
 

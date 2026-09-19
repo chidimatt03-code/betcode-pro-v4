@@ -45,6 +45,26 @@ function mapSelection(type, name) {
     }
   }
 
+  if (normalizedType === "WIN_EITHER_HALF") {
+    if ([
+      "home",
+      "home team",
+      "home team wins either half",
+      "home wins either half"
+    ].includes(normalizedName)) {
+      return "HOME_WINS_EITHER_HALF";
+    }
+
+    if ([
+      "away",
+      "away team",
+      "away team wins either half",
+      "away wins either half"
+    ].includes(normalizedName)) {
+      return "AWAY_WINS_EITHER_HALF";
+    }
+  }
+
   if (normalizedType === "DOUBLE_CHANCE") {
     if (["1x", "home or draw"].includes(normalizedName)) {
       return "HOME_OR_DRAW";

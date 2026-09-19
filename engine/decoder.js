@@ -1,5 +1,6 @@
 const { getInternalCodec } = require("./internalCodecs");
 const { normalizeBookmakerSlip } = require("./bookmakerNormalizer");
+const { mapSelectionWithLine } = require("./selectionMapper");
 
 function toInternalMarketType(name) {
   const value = String(name || "").trim().toLowerCase();
@@ -53,12 +54,22 @@ function restoreInternalSlipShape(slip) {
       event: item.event,
 
       market: {
-        type: toInternalMarketType(item.market.name),
+        type: item.market.type || toInternalMarketType(item.market.name),
         name: item.market.name,
         line: item.market.line
       },
 
-      selection: item.selection
+      selection: {
+        ...item.selection,
+        type:
+          mapSelectionWithLine(
+            item.market.type || toInternalMarketType(item.market.name),
+            item.selection.name,
+            item.market.line,
+            item.event.home,
+            item.event.away
+          ).type || item.selection.type || null
+      }
     }))
   };
 }

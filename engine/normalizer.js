@@ -29,7 +29,8 @@ function normalizeTeamName(name) {
     "newcastle united": "newcastle",
     "newcastle united fc": "newcastle",
 
-    "liverpool fc": "liverpool"
+    "liverpool fc": "liverpool",
+    "atl madrid": "atletico madrid"
   };
 
   return aliases[value] || value;

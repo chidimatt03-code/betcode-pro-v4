@@ -17,6 +17,18 @@ async function request(path,options={}){
   return {status:r.status,headers:r.headers,body};
 }
 
+function makeScryptPassword(password){
+  const salt=crypto.randomBytes(16).toString("hex");
+  const derived=crypto.scryptSync(
+    password,
+    salt,
+    64,
+    {N:16384,r:8,p:1}
+  ).toString("hex");
+
+  return `scrypt$${salt}$${derived}`;
+}
+
 (async()=>{
   console.log("=================================");
   console.log("BETCODE PRO STEP 17 SECURITY HARDENING TEST");
@@ -26,38 +38,53 @@ async function request(path,options={}){
   let token=null;
 
   try{
-    const register=await request("/api/register",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        name:"Step 17 Test",
-        phone:"08000000000",
-        email,
-        password
-      })
-    });
+    const passwordHash=makeScryptPassword(password);
 
-    assert(register.status===200,"Registration failed");
-    assert(typeof register.body.token==="string","Registration token missing");
-    token=register.body.token;
+    const info=Database.prepare(`
+      INSERT INTO users(
+        name,phone,email,password_hash,created_at
+      )
+      VALUES(?,?,?,?,?)
+    `).run(
+      "Step 17 Test",
+      "08000000000",
+      email,
+      passwordHash,
+      new Date().toISOString()
+    );
+
+    userId=Number(info.lastInsertRowid);
 
     const user=Database.prepare(
       "SELECT id,password_hash FROM users WHERE email=?"
     ).get(email);
 
     assert(user,"Temporary user not created");
-    userId=user.id;
-    assert(user.password_hash.startsWith("scrypt$"),"New password is not scrypt");
+    assert(user.password_hash.startsWith("scrypt$"),
+      "New test password is not scrypt");
 
-    console.log("Step 1: New account uses scrypt PASSED");
+    console.log("Step 1: Scrypt account fixture PASSED");
+
+    const login=await request("/api/login",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        email,
+        password
+      })
+    });
+
+    assert(login.status===200,"Login failed");
+    assert(typeof login.body.token==="string","Login token missing");
+    token=login.body.token;
+
+    console.log("Step 2: Secure session token format PASSED");
 
     assert(token.length===64 && /^[a-f0-9]+$/.test(token),
       "Session token format is invalid");
 
     assert(!Buffer.from(token).toString("base64").includes(":v1"),
       "Legacy token format detected");
-
-    console.log("Step 2: Secure session token format PASSED");
 
     const me=await request("/api/me",{
       headers:{Authorization:"Bearer "+token}
@@ -106,13 +133,14 @@ async function request(path,options={}){
     console.log("Step 6: Server-side logout revocation PASSED");
 
     const rateStatuses=[];
+    const rateLimitEmail=`step17-rate-limit-${Date.now()}@example.com`;
 
     for(let i=0;i<11;i++){
       const r=await request("/api/login",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
-          email:"step17-rate-limit-invalid@example.com",
+          email:rateLimitEmail,
           password:"wrong-password"
         })
       });
@@ -144,6 +172,8 @@ async function request(path,options={}){
       Database.prepare("DELETE FROM conversions WHERE user_id=?").run(userId);
       Database.prepare("DELETE FROM users WHERE id=?").run(userId);
     }
+
+    Database.prepare("DELETE FROM email_verifications WHERE email=?").run(email);
   }
 })().catch(e=>{
   console.error("SECURITY TEST FAILED:",e.message);

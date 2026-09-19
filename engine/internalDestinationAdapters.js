@@ -1,4 +1,6 @@
 const { createDestinationAdapter } = require("./destinationAdapter");
+const { createBookingCode: createSportyBetBookingCode } =
+  require("./bookmakers/sportybet");
 const { addToBetSlip, getStatoCoupon } = require("./bookmakers/bet9jaCouponWs");
 
 function notImplemented(bookmaker) {
@@ -12,7 +14,7 @@ function notImplemented(bookmaker) {
 const adapters = {
   sportybet: createDestinationAdapter({
     bookmaker: "sportybet",
-    createBookingCode: notImplemented("SportyBet")
+    createBookingCode: createSportyBetBookingCode
   }),
 
   bet9ja: createDestinationAdapter({

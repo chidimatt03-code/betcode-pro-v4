@@ -1,4 +1,9 @@
 const { createBookmakerCodec } = require("./bookmakerCodec");
+const { decodeBookingCode: decodeSportyBetBookingCode } =
+  require("./bookmakers/sportybet");
+
+const { decodeBookingCode: decodeBet9jaBookingCode } =
+  require("./bookmakers/bet9ja");
 const {
   encodeBetCodePro,
   decodeBetCodePro
@@ -15,13 +20,13 @@ function notImplemented(bookmaker, action) {
 const codecs = {
   sportybet: createBookmakerCodec({
     bookmaker: "sportybet",
-    decodeBookingCode: notImplemented("SportyBet", "decode"),
+    decodeBookingCode: decodeSportyBetBookingCode,
     createBookingCode: notImplemented("SportyBet", "create")
   }),
 
   bet9ja: createBookmakerCodec({
     bookmaker: "bet9ja",
-    decodeBookingCode: notImplemented("Bet9ja", "decode"),
+    decodeBookingCode: decodeBet9jaBookingCode,
     createBookingCode: notImplemented("Bet9ja", "create")
   }),
 

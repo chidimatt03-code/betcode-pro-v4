@@ -44,7 +44,11 @@ function ingestEvent(bookmaker, event) {
       {
         marketType: market.marketType || market.type,
         marketName: market.marketName || market.name || null,
-        line: market.line ?? null
+        line: market.line ?? null,
+        bookmakerMarketId:
+          market.bookmakerMarketId ?? market.marketId ?? null,
+        bookmakerSpecifier:
+          market.bookmakerSpecifier ?? market.specifier ?? null
       }
     );
 
@@ -63,7 +67,11 @@ function ingestEvent(bookmaker, event) {
           selectionName:
             selection.selectionName || selection.name || null,
           selectionValue:
-            selection.selectionValue ?? selection.value ?? null
+            selection.selectionValue ?? selection.value ?? null,
+          bookmakerOutcomeId:
+            selection.bookmakerOutcomeId ??
+            selection.outcomeId ??
+            null
         }
       );
 

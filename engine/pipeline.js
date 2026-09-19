@@ -28,8 +28,38 @@ const {
 } = require("./routes");
 
 const {
+  getMarketCompatibility
+} = require("./marketCompatibility");
+
+const {
   findBestStoredEventMatch
 } = require("./eventMatcher");
+
+function unavailableSelection({
+  selection,
+  reason,
+  errors,
+  match = null,
+  marketType = null,
+  compatibility = null
+}) {
+  return {
+    index: selection.index,
+    reason,
+    errors,
+    event: selection.event,
+    market: {
+      source: selection.market?.name || null,
+      type: marketType,
+      line: selection.market?.line ?? null
+    },
+    selection: {
+      source: selection.selection?.name || null
+    },
+    match,
+    compatibility
+  };
+}
 
 function convertBetSlip({
   sourceBookmaker,
@@ -39,15 +69,12 @@ function convertBetSlip({
   normalizedSlip = null,
   destinationEvents = []
 }) {
-  // 1. Use normalized slip when available,
-  // otherwise build the universal slip.
   const slip = normalizedSlip || createBetSlip({
     sourceBookmaker,
     sourceCode,
     selections
   });
 
-  // 2. Basic source validation
   if (!slip.source.bookmaker) {
     return {
       success: false,
@@ -96,89 +123,199 @@ function convertBetSlip({
   }
 
   const convertedSelections = [];
+  const unavailableSelections = [];
 
-  // 3. Process each selection
   for (const selection of slip.selections) {
-    const sourceEvent = normalizeEvent(selection.event);
+    try {
+      const sourceEvent = normalizeEvent(selection.event);
 
-    // 4. Map market BEFORE requiring market.type
-    const marketType = mapMarketType(
-      selection.market.name,
-      selection.market.type
-    );
+      const marketType = mapMarketType(
+        selection.market.name,
+        selection.market.type
+      );
 
-    if (!marketType || !isSupportedMarket(marketType)) {
-      return {
-        success: false,
-        stage: "MARKET_MAPPING",
-        selection: selection.index,
-        errors: [
-          `Unsupported market: ${selection.market.name || "Unknown"}`
-        ]
-      };
-    }
+      if (!marketType || !isSupportedMarket(marketType)) {
+        unavailableSelections.push(
+          unavailableSelection({
+            selection,
+            reason: "MARKET_NOT_SUPPORTED",
+            errors: [
+              `Unsupported market: ${selection.market.name || "Unknown"}`
+            ],
+            marketType
+          })
+        );
 
-    // 5. Find destination event
-    const match = destinationEvents.length
-      ? findBestEventMatch(sourceEvent, destinationEvents)
-      : findBestStoredEventMatch(destinationBookmaker, sourceEvent);
-
-    // 6. Map selection
-    const mappedSelection = mapSelectionWithLine(
-      marketType,
-      selection.selection.name,
-      selection.market.line,
-      selection.event.home,
-      selection.event.away
-    );
-
-    // 7. Validate final conversion
-    const validation = validateConversion({
-      matchResult: match,
-      marketType,
-      selectionType: mappedSelection.type,
-      line: mappedSelection.line
-    });
-
-    if (!validation.valid) {
-      return {
-        success: false,
-        stage: "CONVERSION_VALIDATION",
-        selection: selection.index,
-        errors: validation.errors,
-        match
-      };
-    }
-
-    convertedSelections.push({
-      index: selection.index,
-
-      event: {
-        source: sourceEvent,
-        destination: match.candidate,
-        confidence: match.score,
-        status: match.status
-      },
-
-      market: {
-        source: selection.market.name,
-        type: marketType,
-        line: mappedSelection.line
-      },
-
-      selection: {
-        source: selection.selection.name,
-        type: mappedSelection.type
+        continue;
       }
-    });
+
+      const compatibility = getMarketCompatibility(
+        marketType,
+        sourceBookmaker,
+        destinationBookmaker
+      );
+
+      if (compatibility.status !== "SUPPORTED") {
+        unavailableSelections.push(
+          unavailableSelection({
+            selection,
+            reason: "MARKET_NOT_SUPPORTED",
+            errors: [
+              compatibility.status === "UNKNOWN"
+                ? `No verified ${marketType} compatibility exists for ${sourceBookmaker} -> ${destinationBookmaker}.`
+                : `${marketType} is not supported by ${destinationBookmaker}.`
+            ],
+            marketType,
+            compatibility
+          })
+        );
+
+        continue;
+      }
+
+      const match = destinationEvents.length
+        ? findBestEventMatch(sourceEvent, destinationEvents)
+        : findBestStoredEventMatch(destinationBookmaker, sourceEvent);
+
+      if (
+        !match ||
+        !match.candidate ||
+        !["MATCHED", "LIKELY_MATCH"].includes(match.status)
+      ) {
+        unavailableSelections.push(
+          unavailableSelection({
+            selection,
+            reason: "EVENT_NOT_FOUND",
+            errors: [
+              "No sufficiently confident destination event match was found."
+            ],
+            match,
+            marketType,
+            compatibility
+          })
+        );
+
+        continue;
+      }
+
+      const mappedSelection = mapSelectionWithLine(
+        marketType,
+        selection.selection.name,
+        selection.market.line,
+        selection.event.home,
+        selection.event.away
+      );
+
+      if (!mappedSelection || !mappedSelection.type) {
+        unavailableSelections.push(
+          unavailableSelection({
+            selection,
+            reason: "SELECTION_NOT_SUPPORTED",
+            errors: [
+              `No supported destination selection mapping exists for "${selection.selection.name || "Unknown"}".`
+            ],
+            match,
+            marketType,
+            compatibility
+          })
+        );
+
+        continue;
+      }
+
+      const validation = validateConversion({
+        matchResult: match,
+        marketType,
+        selectionType: mappedSelection.type,
+        line: mappedSelection.line
+      });
+
+      if (!validation.valid) {
+        const lineError = validation.errors.some(error =>
+          /line/i.test(error)
+        );
+
+        unavailableSelections.push(
+          unavailableSelection({
+            selection,
+            reason: lineError
+              ? "LINE_NOT_SUPPORTED"
+              : "SELECTION_NOT_SUPPORTED",
+            errors: validation.errors,
+            match,
+            marketType,
+            compatibility
+          })
+        );
+
+        continue;
+      }
+
+      convertedSelections.push({
+        index: selection.index,
+
+        event: {
+          source: sourceEvent,
+          destination: match.candidate,
+          confidence: match.score,
+          status: match.status
+        },
+
+        market: {
+          source: selection.market.name,
+          type: marketType,
+          line: mappedSelection.line
+        },
+
+        selection: {
+          source: selection.selection.name,
+          type: mappedSelection.type
+        }
+      });
+    } catch (error) {
+      unavailableSelections.push(
+        unavailableSelection({
+          selection,
+          reason: "DESTINATION_ERROR",
+          errors: [
+            error && error.message
+              ? error.message
+              : String(error)
+          ]
+        })
+      );
+    }
+  }
+
+  const totalSelections = slip.selections.length;
+  const convertedCount = convertedSelections.length;
+  const unavailableCount = unavailableSelections.length;
+
+  let status;
+
+  if (convertedCount === 0) {
+    status = "FAILED";
+  } else if (convertedCount === totalSelections) {
+    status = "FULL_CONVERSION";
+  } else {
+    status = "PARTIAL_CONVERSION";
   }
 
   return {
-    success: true,
+    success: convertedCount > 0,
+    status,
 
     source: slip.source,
 
-    selections: convertedSelections
+    summary: {
+      total: totalSelections,
+      converted: convertedCount,
+      unavailable: unavailableCount
+    },
+
+    selections: convertedSelections,
+
+    unavailableSelections
   };
 }
 

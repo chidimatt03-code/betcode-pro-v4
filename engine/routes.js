@@ -10,9 +10,9 @@ const ROUTES = {
   "bet9ja->sportybet": {
     source: "bet9ja",
     destination: "sportybet",
-    status: "development",
-    sourceDecode: false,
-    destinationCreate: false
+    status: "live",
+    sourceDecode: true,
+    destinationCreate: true
   },
 
   "sportybet->betking": {

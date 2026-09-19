@@ -31,21 +31,16 @@ function findBestStoredEventMatch(bookmaker, sourceEvent) {
   });
 
   /*
-   * If alias normalization changed either team name, the raw SQL
-   * lookup may have excluded the correct candidate. Retry using
-   * normalized names when they differ from the source names.
+   * Normalized names may differ from the database spelling because
+   * punctuation such as "-" is removed during normalization.
+   * Fall back to the same sport and competition so the candidate
+   * set remains targeted before the real matcher performs
+   * normalized team/competition comparison.
    */
-  if (
-    candidates.length === 0 &&
-    (
-      normalizedHome !== String(sourceEvent?.home || "").toLowerCase().trim() ||
-      normalizedAway !== String(sourceEvent?.away || "").toLowerCase().trim()
-    )
-  ) {
+  if (candidates.length === 0) {
     candidates = findEvents(bookmaker, {
       sport: sourceEvent?.sport,
-      homeTeam: normalizedHome,
-      awayTeam: normalizedAway
+      competition: sourceEvent?.competition
     });
   }
 

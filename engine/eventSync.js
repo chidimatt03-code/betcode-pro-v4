@@ -3,6 +3,20 @@ const {
   internalEventSourceStatus
 } = require("./internalEventSource");
 
+const {
+  fetchUpcomingEvents
+} = require("./bookmakers/sportybet");
+
+async function syncLiveSportyBetEvents(options = {}) {
+  const result = await fetchUpcomingEvents(options);
+
+  if (!result || result.success !== true) {
+    throw new Error("SportyBet live event feed unavailable.");
+  }
+
+  return syncBookmakerEvents("sportybet", result.events);
+}
+
 async function syncBookmakerEvents(bookmaker, events = []) {
   const status = internalEventSourceStatus(bookmaker);
 
@@ -21,5 +35,6 @@ async function syncBookmakerEvents(bookmaker, events = []) {
 
 module.exports = {
   syncBookmakerEvents,
+  syncLiveSportyBetEvents,
   internalEventSourceStatus
 };

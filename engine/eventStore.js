@@ -151,10 +151,16 @@ function upsertEventMarket(eventId, market) {
     Database.prepare(`
       UPDATE event_markets
       SET market_name=?,
+          line=?,
+          bookmaker_market_id=?,
+          bookmaker_specifier=?,
           updated_at=?
       WHERE id=?
     `).run(
       market.marketName || null,
+      market.line ?? null,
+      market.bookmakerMarketId ?? null,
+      market.bookmakerSpecifier ?? null,
       timestamp,
       existing.id
     );
@@ -168,15 +174,19 @@ function upsertEventMarket(eventId, market) {
       market_type,
       market_name,
       line,
+      bookmaker_market_id,
+      bookmaker_specifier,
       created_at,
       updated_at
     )
-    VALUES (?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     eventId,
     market.marketType,
     market.marketName || null,
     market.line ?? null,
+    market.bookmakerMarketId ?? null,
+    market.bookmakerSpecifier ?? null,
     timestamp,
     timestamp
   );
@@ -215,10 +225,12 @@ function upsertMarketSelection(marketId, selection) {
     Database.prepare(`
       UPDATE market_selections
       SET selection_name=?,
+          bookmaker_outcome_id=?,
           updated_at=?
       WHERE id=?
     `).run(
       selection.selectionName || null,
+      selection.bookmakerOutcomeId ?? null,
       timestamp,
       existing.id
     );
@@ -232,15 +244,17 @@ function upsertMarketSelection(marketId, selection) {
       selection_type,
       selection_name,
       selection_value,
+      bookmaker_outcome_id,
       created_at,
       updated_at
     )
-    VALUES (?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `).run(
     marketId,
     selection.selectionType,
     selection.selectionName || null,
     selection.selectionValue ?? null,
+    selection.bookmakerOutcomeId ?? null,
     timestamp,
     timestamp
   );
