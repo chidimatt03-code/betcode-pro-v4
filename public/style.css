@@ -2981,3 +2981,98 @@ footer{
     right:18px;
   }
 }
+
+/* PHASE B-C CHANGE 4 — AUTH HIERARCHY & INTRO REFINEMENT */
+.authCard{
+  overflow:hidden;
+}
+
+.authIntro{
+  margin-bottom:4px;
+}
+
+.authIntro .eyebrow{
+  display:inline-flex;
+  align-items:center;
+  min-height:26px;
+  padding:5px 9px;
+  border:1px solid rgba(183,255,60,.18);
+  border-radius:999px;
+  background:rgba(183,255,60,.055);
+  color:var(--accent);
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:1.05px;
+  line-height:1;
+}
+
+.authIntro h2{
+  margin-top:13px;
+  margin-bottom:8px;
+  font-size:23px;
+  line-height:1.15;
+  letter-spacing:-.55px;
+}
+
+.authIntro p{
+  max-width:520px;
+  margin-top:0;
+  color:#9aa6b7;
+  font-size:14px;
+  line-height:1.6;
+}
+
+.authCard > label:first-of-type{
+  margin-top:22px;
+}
+
+.authCard .status{
+  min-height:20px;
+  margin-top:11px;
+}
+
+.authCard .forgotBtn{
+  margin-top:8px;
+}
+
+.authCard .switchText{
+  color:#8995a6;
+}
+
+.authCard .switchText .linkBtn{
+  margin-left:3px;
+}
+
+#verificationScreen .authIntro{
+  margin-bottom:2px;
+}
+
+#verificationScreen #verificationEmail{
+  color:var(--text);
+  font-weight:750;
+}
+
+#verificationScreen #verificationCountdown{
+  margin-top:11px;
+  text-align:center;
+  font-size:13px;
+}
+
+#verificationScreen #resendVerificationBtn{
+  display:block;
+  margin:12px auto 0;
+}
+
+@media (max-width:520px){
+  .authIntro h2{
+    font-size:21px;
+  }
+
+  .authIntro p{
+    font-size:13.5px;
+  }
+
+  .authIntro .eyebrow{
+    font-size:9.5px;
+  }
+}
