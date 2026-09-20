@@ -2858,3 +2858,27 @@ footer{
   outline:2px solid var(--accent);
   outline-offset:2px;
 }
+
+/* PHASE B-C CHANGE 2 — PASSWORD VISIBILITY STATE */
+.togglePassword.is-visible{
+  color:var(--accent);
+  border-color:rgba(183,255,60,.35);
+  background:rgba(183,255,60,.06);
+}
+
+.togglePassword.is-visible::before{
+  opacity:.95;
+}
+
+.togglePassword.is-visible::after{
+  width:22px;
+  height:1.5px;
+  border-radius:2px;
+  background:currentColor;
+  transform:rotate(-45deg);
+}
+
+.togglePassword.is-visible:hover{
+  background:rgba(183,255,60,.1);
+  border-color:var(--accent);
+}

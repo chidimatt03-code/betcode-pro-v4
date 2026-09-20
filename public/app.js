@@ -723,8 +723,11 @@ $("bottomGetStarted").onclick=showRegisterScreen;
 document.querySelectorAll(".togglePassword").forEach(btn=>{
   btn.onclick=()=>{
     const input=document.getElementById(btn.dataset.target);
-    input.type=input.type==="password"?"text":"password";
-    btn.textContent=input.type==="password"?"👁️":"🙈";
+    const isVisible=input.type==="password";
+    input.type=isVisible?"text":"password";
+    btn.classList.toggle("is-visible",isVisible);
+    btn.setAttribute("aria-label",isVisible?"Hide password":"Show password");
+    btn.setAttribute("aria-pressed",String(isVisible));
   };
 });
 
