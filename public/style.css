@@ -2882,3 +2882,102 @@ footer{
   background:rgba(183,255,60,.1);
   border-color:var(--accent);
 }
+
+/* PHASE B-C CHANGE 3 — PREMIUM AUTH CARD PRESENTATION */
+#loginCard,
+#registerCard,
+#forgotCard,
+#resetCard{
+  position:relative;
+  margin-top:18px;
+  padding:24px;
+  background:
+    linear-gradient(180deg,rgba(21,28,40,.98),rgba(14,19,28,.98));
+  border:1px solid rgba(141,153,170,.18);
+  border-radius:20px;
+  box-shadow:
+    0 22px 60px rgba(0,0,0,.30),
+    0 0 0 1px rgba(255,255,255,.015);
+}
+
+#loginCard::before,
+#registerCard::before,
+#forgotCard::before,
+#resetCard::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:24px;
+  right:24px;
+  height:1px;
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(183,255,60,.34),
+    transparent
+  );
+}
+
+#loginCard h2,
+#registerCard h2,
+#forgotCard h2,
+#resetCard h2{
+  margin-bottom:8px;
+  font-size:22px;
+  letter-spacing:-.45px;
+}
+
+#loginCard p,
+#registerCard p,
+#forgotCard p,
+#resetCard p{
+  line-height:1.55;
+}
+
+#loginCard label,
+#registerCard label,
+#forgotCard label,
+#resetCard label{
+  margin-top:17px;
+}
+
+#loginCard input,
+#registerCard input,
+#forgotCard input,
+#resetCard input{
+  background:rgba(21,28,40,.82);
+}
+
+#loginCard input:focus,
+#registerCard input:focus,
+#forgotCard input:focus,
+#resetCard input:focus{
+  background:var(--surface-3);
+}
+
+#loginCard .switchText,
+#registerCard .switchText,
+#forgotCard .switchText,
+#resetCard .switchText{
+  margin-top:19px;
+  padding-top:17px;
+  border-top:1px solid rgba(141,153,170,.12);
+}
+
+@media (max-width:520px){
+  #loginCard,
+  #registerCard,
+  #forgotCard,
+  #resetCard{
+    padding:21px 18px;
+    border-radius:18px;
+  }
+
+  #loginCard::before,
+  #registerCard::before,
+  #forgotCard::before,
+  #resetCard::before{
+    left:18px;
+    right:18px;
+  }
+}
