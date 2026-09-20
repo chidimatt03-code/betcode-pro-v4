@@ -2785,3 +2785,76 @@ footer{
     margin-bottom:4px;
   }
 }
+
+/* PHASE B-C CHANGE 1 — PREMIUM PASSWORD VISIBILITY CONTROL */
+.passwordWrap{
+  position:relative;
+  width:100%;
+}
+
+.passwordWrap input{
+  width:100%;
+  padding-right:58px;
+}
+
+.togglePassword{
+  position:absolute;
+  top:50%;
+  right:8px;
+  width:40px;
+  min-width:40px;
+  height:40px;
+  min-height:40px;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transform:translateY(-50%);
+  border:1px solid var(--border);
+  border-radius:11px;
+  background:var(--surface-2);
+  color:var(--muted);
+  box-shadow:0 4px 12px rgba(0,0,0,.14);
+  font-size:0;
+  transition:
+    background .18s ease,
+    border-color .18s ease,
+    color .18s ease,
+    transform .18s ease,
+    box-shadow .18s ease;
+}
+
+.togglePassword::before{
+  content:"";
+  width:17px;
+  height:11px;
+  border:1.7px solid currentColor;
+  border-radius:12px / 9px;
+  display:block;
+  position:relative;
+}
+
+.togglePassword::after{
+  content:"";
+  position:absolute;
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:currentColor;
+}
+
+.togglePassword:hover{
+  background:var(--surface-3);
+  border-color:var(--accent);
+  color:var(--accent);
+  box-shadow:0 6px 16px rgba(0,0,0,.2);
+}
+
+.togglePassword:active{
+  transform:translateY(-50%) scale(.96);
+}
+
+.togglePassword:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
