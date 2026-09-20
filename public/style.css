@@ -2265,3 +2265,523 @@ footer{
   }
 }
 
+
+
+/* PHASE B-A PREMIUM MOBILE HERO */
+.publicHome{
+  width:100%;
+  overflow:hidden;
+}
+
+.publicNav{
+  position:sticky;
+  top:10px;
+  z-index:20;
+  margin:0 0 18px;
+  padding:10px 12px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  background:rgba(16,21,31,.88);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+
+.publicBrand{
+  min-width:0;
+}
+
+.publicBrand strong{
+  font-size:15px;
+  letter-spacing:-.2px;
+}
+
+.publicBrand span{
+  color:#7f8a9c;
+  font-size:11px;
+}
+
+.publicNavActions{
+  gap:7px;
+}
+
+.publicNavActions button{
+  min-height:42px;
+  padding:9px 12px;
+  font-size:13px;
+}
+
+.heroSection{
+  position:relative;
+  isolation:isolate;
+  padding:30px 0 8px;
+}
+
+.heroCopy{
+  position:relative;
+  z-index:2;
+}
+
+.heroCopy h2{
+  max-width:620px;
+  margin-top:10px;
+  font-size:clamp(34px,9vw,58px);
+  line-height:.98;
+  letter-spacing:-1.8px;
+}
+
+.heroText{
+  max-width:540px;
+  margin-top:16px;
+  font-size:16px;
+  line-height:1.65;
+  color:#aab4c3;
+}
+
+.heroActions{
+  margin-top:22px;
+  gap:10px;
+}
+
+.heroActions button{
+  min-height:54px;
+  border-radius:14px;
+  padding:14px 18px;
+  font-size:15px;
+}
+
+.heroTrust{
+  margin-top:18px;
+  gap:8px 14px;
+}
+
+.heroTrust span{
+  font-size:12px;
+  color:#9ba6b6;
+}
+
+.heroPreview{
+  position:relative;
+  margin-top:28px;
+  padding:6px 0 10px;
+}
+
+.previewWindow{
+  position:relative;
+  z-index:2;
+  border:1px solid rgba(183,255,60,.16);
+  box-shadow:
+    0 28px 70px rgba(0,0,0,.42),
+    0 0 45px rgba(183,255,60,.06);
+}
+
+.previewGlow{
+  opacity:.8;
+}
+
+.trustStrip{
+  margin-top:18px;
+  border-color:rgba(255,255,255,.07);
+  background:rgba(16,21,31,.72);
+}
+
+@media (max-width:560px){
+  .app{
+    padding:14px 12px 34px;
+  }
+
+  .appHeader{
+    margin-bottom:14px;
+  }
+
+  .publicNav{
+    top:6px;
+    padding:9px;
+  }
+
+  .publicBrandIcon{
+    width:34px;
+    height:34px;
+  }
+
+  .publicBrand span{
+    display:none;
+  }
+
+  .publicNavActions button{
+    min-height:40px;
+    padding:8px 10px;
+  }
+
+  .heroSection{
+    padding-top:24px;
+  }
+
+  .heroCopy h2{
+    font-size:clamp(34px,10.5vw,48px);
+  }
+
+  .heroText{
+    font-size:15px;
+    line-height:1.6;
+  }
+
+  .heroActions{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+
+  .heroActions button{
+    width:100%;
+  }
+
+  .heroTrust{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+
+  .heroPreview{
+    margin-top:24px;
+  }
+}
+
+/* PHASE B-A CHANGE 3 — PREMIUM CONVERSION PREVIEW */
+.previewWindow{
+  padding:18px;
+  border-radius:22px;
+  background:linear-gradient(180deg,#121925 0%,#0d131c 100%);
+}
+
+.previewTop{
+  padding-bottom:16px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+
+.previewEyebrow{
+  display:block;
+  margin-bottom:5px;
+  color:var(--accent);
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:1.4px;
+}
+
+.previewTop strong{
+  font-size:15px;
+  letter-spacing:-.2px;
+}
+
+.previewDot{
+  color:var(--success);
+  font-size:11px;
+}
+
+.previewField{
+  margin-top:16px;
+  padding:15px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:15px;
+  background:rgba(255,255,255,.025);
+}
+
+.previewField span,
+.previewMarkets span{
+  display:block;
+  margin-bottom:6px;
+  color:#788497;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:1px;
+}
+
+.previewField strong{
+  font-size:22px;
+  letter-spacing:1.5px;
+}
+
+.previewMarkets{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr);
+  align-items:center;
+  gap:8px;
+  margin-top:12px;
+}
+
+.previewMarkets>div:not(.previewArrow){
+  min-width:0;
+  padding:13px 12px;
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:14px;
+  background:rgba(255,255,255,.025);
+}
+
+.previewMarkets strong{
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:14px;
+}
+
+.previewArrow{
+  display:grid;
+  place-items:center;
+  color:var(--accent);
+  font-size:18px;
+  font-weight:900;
+}
+
+.previewButton{
+  margin-top:14px;
+  min-height:48px;
+  display:grid;
+  place-items:center;
+  border-radius:13px;
+  background:var(--accent);
+  color:#090d12;
+  font-size:14px;
+  font-weight:850;
+  box-shadow:0 10px 25px rgba(183,255,60,.12);
+}
+
+.previewStatus{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  margin-top:12px;
+  color:#aab4c3;
+  font-size:12px;
+}
+
+.previewStatus>span{
+  color:var(--success);
+  font-size:9px;
+}
+
+@media (max-width:560px){
+  .previewWindow{
+    padding:15px;
+    border-radius:19px;
+  }
+
+  .previewField strong{
+    font-size:20px;
+  }
+
+  .previewMarkets{
+    grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr);
+  }
+
+  .previewMarkets>div:not(.previewArrow){
+    padding:11px 9px;
+  }
+
+  .previewMarkets strong{
+    font-size:13px;
+  }
+}
+
+/* PHASE B-A CHANGE 4 — PREMIUM TRUST STRIP */
+.trustStrip{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin:18px 0 8px;
+}
+
+.trustItem{
+  min-width:0;
+  padding:14px 13px;
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:16px;
+  background:rgba(255,255,255,.025);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.trustItem strong{
+  display:block;
+  margin-bottom:4px;
+  color:var(--text);
+  font-size:13px;
+  font-weight:850;
+  letter-spacing:-.15px;
+}
+
+.trustItem span{
+  display:block;
+  color:#7f8b9c;
+  font-size:10px;
+  line-height:1.45;
+}
+
+@media (max-width:560px){
+  .trustStrip{
+    grid-template-columns:1fr;
+    gap:8px;
+    margin-top:14px;
+  }
+
+  .trustItem{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    padding:13px 14px;
+  }
+
+  .trustItem strong{
+    margin:0;
+    white-space:nowrap;
+  }
+
+  .trustItem span{
+    text-align:right;
+  }
+}
+
+/* PHASE B-A CHANGE 5 — PREMIUM MOBILE NAV */
+.publicNav{
+  position:sticky;
+  top:0;
+  z-index:30;
+  padding:12px 0;
+  background:linear-gradient(180deg,rgba(8,11,18,.96) 0%,rgba(8,11,18,.82) 78%,rgba(8,11,18,0) 100%);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+
+.publicNav .publicNavInner{
+  min-height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:8px 10px 8px 14px;
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:18px;
+  background:rgba(16,21,31,.86);
+  box-shadow:0 12px 35px rgba(0,0,0,.22);
+}
+
+.publicBrand{
+  min-width:0;
+}
+
+.publicBrand strong{
+  font-size:15px;
+  letter-spacing:-.35px;
+}
+
+.publicBrand span{
+  font-size:9px;
+  letter-spacing:1px;
+}
+
+.publicNavActions{
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+
+.publicNavActions button{
+  min-height:36px;
+  padding:0 12px;
+  border-radius:11px;
+  font-size:12px;
+  font-weight:800;
+}
+
+@media (max-width:560px){
+  .publicNav{
+    padding:8px 0 10px;
+  }
+
+  .publicNav .publicNavInner{
+    min-height:48px;
+    padding:6px 7px 6px 12px;
+    border-radius:16px;
+  }
+
+  .publicBrand strong{
+    font-size:14px;
+  }
+
+  .publicBrand span{
+    display:none;
+  }
+
+  .publicNavActions{
+    gap:5px;
+  }
+
+  .publicNavActions button{
+    min-height:34px;
+    padding:0 10px;
+    font-size:11px;
+  }
+}
+
+/* PHASE B-A CHANGE 6 — MOBILE SECTION RHYTHM */
+@media (max-width:560px){
+  .publicHome{
+    padding-bottom:20px;
+  }
+
+  .heroSection{
+    padding-top:18px;
+    padding-bottom:24px;
+  }
+
+  .heroCopy h2{
+    max-width:11ch;
+    margin-bottom:12px;
+    line-height:1.04;
+  }
+
+  .heroText{
+    max-width:42ch;
+    font-size:13px;
+    line-height:1.65;
+  }
+
+  .heroActions{
+    gap:8px;
+    margin-top:18px;
+  }
+
+  .heroActions .btn{
+    min-height:46px;
+  }
+
+  .heroTrust{
+    margin-top:13px;
+    font-size:10px;
+  }
+
+  .heroPreview{
+    margin-top:20px;
+  }
+
+  .homeSection{
+    padding-top:28px;
+    padding-bottom:28px;
+  }
+
+  .homeSection h3{
+    margin-bottom:8px;
+  }
+
+  .stepsGrid,
+  .featureGrid{
+    gap:10px;
+  }
+
+  .stepCard,
+  .featureCard{
+    border-radius:17px;
+  }
+
+  .trustStrip{
+    margin-bottom:4px;
+  }
+}
