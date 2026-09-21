@@ -3076,3 +3076,80 @@ footer{
     font-size:9.5px;
   }
 }
+
+/* PHASE B-C CHANGE 5 — AUTH ACTION HIERARCHY */
+.authCard .forgotBtn,
+.authCard .linkBtn{
+  position:relative;
+  color:var(--accent);
+  transition:
+    color .18s ease,
+    opacity .18s ease,
+    transform .15s ease;
+}
+
+.authCard .forgotBtn::after,
+.authCard .linkBtn::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:-2px;
+  height:1px;
+  background:currentColor;
+  opacity:0;
+  transform:scaleX(.35);
+  transform-origin:center;
+  transition:
+    opacity .18s ease,
+    transform .18s ease;
+}
+
+.authCard .forgotBtn:hover,
+.authCard .linkBtn:hover{
+  color:#d0ff82;
+  filter:none;
+}
+
+.authCard .forgotBtn:hover::after,
+.authCard .linkBtn:hover::after{
+  opacity:.75;
+  transform:scaleX(1);
+}
+
+.authCard .forgotBtn:active,
+.authCard .linkBtn:active{
+  transform:scale(.97);
+}
+
+.authCard .forgotBtn:focus-visible,
+.authCard .linkBtn:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:4px;
+  border-radius:4px;
+}
+
+.authCard .switchText{
+  line-height:1.6;
+}
+
+#verificationScreen #resendVerificationBtn{
+  font-size:13px;
+  font-weight:750;
+}
+
+#verificationScreen #verificationBackBtn{
+  font-size:13px;
+}
+
+@media (max-width:520px){
+  .authCard .forgotBtn{
+    min-height:36px;
+    padding:8px 2px;
+  }
+
+  .authCard .linkBtn{
+    min-height:34px;
+    padding:6px 2px;
+  }
+}
