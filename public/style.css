@@ -3153,3 +3153,57 @@ footer{
     padding:6px 2px;
   }
 }
+
+/* PHASE B-C CHANGE 6 — AUTH RESPONSIVE CONSISTENCY & SELECTOR FIX */
+.authCard{
+  position:relative;
+  margin-top:18px;
+  padding:24px;
+  background:
+    linear-gradient(180deg,rgba(21,28,40,.98),rgba(14,19,28,.98));
+  border:1px solid rgba(141,153,170,.18);
+  border-radius:20px;
+  box-shadow:
+    0 22px 60px rgba(0,0,0,.30),
+    0 0 0 1px rgba(255,255,255,.015);
+}
+
+.authCard::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:24px;
+  right:24px;
+  height:1px;
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(183,255,60,.34),
+    transparent
+  );
+}
+
+@media (max-width:520px){
+  .authCard{
+    margin-top:16px;
+    padding:21px 18px;
+    border-radius:18px;
+  }
+
+  .authCard::before{
+    left:18px;
+    right:18px;
+  }
+
+  .authCard .passwordWrap{
+    width:100%;
+  }
+
+  .authCard .togglePassword{
+    right:7px;
+    width:40px;
+    min-width:40px;
+    height:40px;
+    min-height:40px;
+  }
+}
