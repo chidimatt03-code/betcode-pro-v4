@@ -139,6 +139,26 @@ const espn = Object.freeze({
     return payload.events
       .map((event) => normalizeEvent(event, timestamp))
       .filter(Boolean);
+  },
+
+  async fetchLiveStates({ fetchImpl = fetch, observedAt } = {}) {
+    const response = await fetchImpl(BASE_URL);
+
+    if (!response.ok) {
+      throw new Error(`ESPN_HTTP_${response.status}`);
+    }
+
+    const payload = await response.json();
+
+    if (!payload || !Array.isArray(payload.events)) {
+      throw new TypeError("ESPN_EVENTS_INVALID");
+    }
+
+    const timestamp = observedAt || new Date().toISOString();
+
+    return payload.events
+      .map((event) => normalizeLiveState(event, timestamp))
+      .filter(Boolean);
   }
 });
 
