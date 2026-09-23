@@ -182,6 +182,41 @@ function initializeGlobalSchema(db) {
   `);
 
   db.run(`
+    CREATE TABLE IF NOT EXISTS bcp_match_results (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      match_id INTEGER NOT NULL
+        REFERENCES bcp_matches(id) ON DELETE CASCADE,
+      source_id INTEGER NOT NULL
+        REFERENCES bcp_sources(id) ON DELETE CASCADE,
+      source_event_id TEXT NOT NULL,
+      home_score INTEGER NOT NULL,
+      away_score INTEGER NOT NULL,
+      status TEXT NOT NULL DEFAULT 'finished',
+      observed_at TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      UNIQUE(source_id, source_event_id),
+      CHECK(home_score >= 0),
+      CHECK(away_score >= 0)
+    )
+  `);
+
+  db.run(`
+    CREATE INDEX IF NOT EXISTS idx_bcp_match_results_match
+      ON bcp_match_results(match_id)
+  `);
+
+  db.run(`
+    CREATE INDEX IF NOT EXISTS idx_bcp_match_results_source
+      ON bcp_match_results(source_id)
+  `);
+
+  db.run(`
+    CREATE INDEX IF NOT EXISTS idx_bcp_match_results_observed
+      ON bcp_match_results(observed_at)
+  `);
+
+  db.run(`
     CREATE INDEX IF NOT EXISTS idx_bcp_match_states_updated
       ON bcp_match_states(updated_at)
   `);

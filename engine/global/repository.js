@@ -4,6 +4,7 @@ const TABLES = Object.freeze({
   competitions: "bcp_competitions",
   matches: "bcp_matches",
   matchSources: "bcp_match_sources",
+  matchResults: "bcp_match_results",
   matchStateObservations: "bcp_match_state_observations",
   matchStates: "bcp_match_states"
 });
@@ -344,6 +345,134 @@ function createRepository(adapter) {
           now,
           id
         ]
+      );
+    },
+
+    async createMatchResult({
+      matchId,
+      sourceId,
+      sourceEventId,
+      homeScore,
+      awayScore,
+      status = "finished",
+      observedAt,
+      now = new Date().toISOString()
+    }) {
+      const result = await db.get(
+        `INSERT INTO ${TABLES.matchResults}
+          (match_id, source_id, source_event_id,
+           home_score, away_score, status,
+           observed_at, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+         RETURNING id`,
+        [
+          matchId,
+          sourceId,
+          String(sourceEventId),
+          homeScore,
+          awayScore,
+          status,
+          observedAt,
+          now,
+          now
+        ]
+      );
+
+      return db.get(
+        `SELECT * FROM ${TABLES.matchResults} WHERE id = ? LIMIT 1`,
+        [result.id]
+      );
+    },
+
+    async findMatchResult(sourceId, sourceEventId) {
+      return db.get(
+        `SELECT * FROM ${TABLES.matchResults}
+         WHERE source_id = ? AND source_event_id = ?
+         LIMIT 1`,
+        [sourceId, String(sourceEventId)]
+      );
+    },
+
+    async findMatchResults(matchId) {
+      return db.all(
+        `SELECT * FROM ${TABLES.matchResults}
+         WHERE match_id = ?
+         ORDER BY observed_at DESC, id DESC`,
+        [matchId]
+      );
+    },
+
+    async findTeamMatchResults(teamId, { limit = 20 } = {}) {
+      const normalizedTeamId = Number(teamId);
+      const normalizedLimit = Number(limit);
+
+      if (!Number.isInteger(normalizedTeamId) || normalizedTeamId <= 0) {
+        throw new TypeError("BCP_TEAM_RESULT_TEAM_ID_INVALID");
+      }
+
+      if (!Number.isInteger(normalizedLimit) || normalizedLimit <= 0) {
+        throw new TypeError("BCP_TEAM_RESULT_LIMIT_INVALID");
+      }
+
+      return db.all(
+        `SELECT
+           r.*,
+           m.home_team_id,
+           m.away_team_id,
+           m.scheduled_start,
+           ht.canonical_name AS home_team_name,
+           at.canonical_name AS away_team_name
+         FROM ${TABLES.matchResults} r
+         JOIN ${TABLES.matches} m ON m.id = r.match_id
+         JOIN ${TABLES.teams} ht ON ht.id = m.home_team_id
+         JOIN ${TABLES.teams} at ON at.id = m.away_team_id
+         WHERE r.status = 'finished'
+           AND (m.home_team_id = ? OR m.away_team_id = ?)
+         ORDER BY
+           COALESCE(r.observed_at, m.scheduled_start) DESC,
+           r.id DESC
+         LIMIT ?`,
+        [normalizedTeamId, normalizedTeamId, normalizedLimit]
+      );
+    },
+
+    async updateMatchResult(id, {
+      matchId,
+      sourceId,
+      sourceEventId,
+      homeScore,
+      awayScore,
+      status = "finished",
+      observedAt,
+      now = new Date().toISOString()
+    }) {
+      await db.run(
+        `UPDATE ${TABLES.matchResults}
+         SET match_id = ?,
+             source_id = ?,
+             source_event_id = ?,
+             home_score = ?,
+             away_score = ?,
+             status = ?,
+             observed_at = ?,
+             updated_at = ?
+         WHERE id = ?`,
+        [
+          matchId,
+          sourceId,
+          String(sourceEventId),
+          homeScore,
+          awayScore,
+          status,
+          observedAt,
+          now,
+          id
+        ]
+      );
+
+      return db.get(
+        `SELECT * FROM ${TABLES.matchResults} WHERE id = ? LIMIT 1`,
+        [id]
       );
     },
 

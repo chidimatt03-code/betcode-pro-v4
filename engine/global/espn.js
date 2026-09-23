@@ -59,6 +59,49 @@ function normalizeEvent(event, observedAt) {
   };
 }
 
+function normalizeResult(event, observedAt) {
+  const competition = event?.competitions?.[0];
+  const competitors = competition?.competitors || [];
+
+  const home = competitors.find(
+    (item) => item.homeAway === "home"
+  );
+
+  const away = competitors.find(
+    (item) => item.homeAway === "away"
+  );
+
+  if (!event?.id || !home || !away) {
+    return null;
+  }
+
+  const status = mapStatus(competition);
+
+  if (status !== "finished") {
+    return null;
+  }
+
+  const homeScore = Number(home.score);
+  const awayScore = Number(away.score);
+
+  if (
+    !Number.isInteger(homeScore) ||
+    homeScore < 0 ||
+    !Number.isInteger(awayScore) ||
+    awayScore < 0
+  ) {
+    return null;
+  }
+
+  return {
+    sourceEventId: String(event.id),
+    homeScore,
+    awayScore,
+    status: "finished",
+    observedAt
+  };
+}
+
 function normalizeLiveState(event, observedAt) {
   const competition = event?.competitions?.[0];
   const competitors = competition?.competitors || [];
@@ -115,14 +158,19 @@ function normalizeLiveState(event, observedAt) {
 }
 
 const espn = Object.freeze({
+  normalizeResult,
   normalizeLiveState,
   code: "espn",
   name: "ESPN Soccer",
   sourceType: "public_api",
   baseUrl: BASE_URL,
 
-  async fetchMatches({ fetchImpl = fetch, observedAt } = {}) {
-    const response = await fetchImpl(BASE_URL);
+  async fetchMatches({ fetchImpl = fetch, observedAt, dates } = {}) {
+    const url = dates
+      ? `${BASE_URL}?dates=${encodeURIComponent(dates)}`
+      : BASE_URL;
+
+    const response = await fetchImpl(url);
 
     if (!response.ok) {
       throw new Error(`ESPN_HTTP_${response.status}`);
@@ -138,6 +186,30 @@ const espn = Object.freeze({
 
     return payload.events
       .map((event) => normalizeEvent(event, timestamp))
+      .filter(Boolean);
+  },
+
+  async fetchResults({ fetchImpl = fetch, observedAt, dates } = {}) {
+    const url = dates
+      ? `${BASE_URL}?dates=${encodeURIComponent(dates)}`
+      : BASE_URL;
+
+    const response = await fetchImpl(url);
+
+    if (!response.ok) {
+      throw new Error(`ESPN_HTTP_${response.status}`);
+    }
+
+    const payload = await response.json();
+
+    if (!payload || !Array.isArray(payload.events)) {
+      throw new TypeError("ESPN_EVENTS_INVALID");
+    }
+
+    const timestamp = observedAt || new Date().toISOString();
+
+    return payload.events
+      .map((event) => normalizeResult(event, timestamp))
       .filter(Boolean);
   },
 
