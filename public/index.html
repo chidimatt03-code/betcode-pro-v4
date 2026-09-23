@@ -506,6 +506,82 @@
     </button>
   </section>
 
+  <!-- MATCH INTELLIGENCE -->
+  <section class="card analystWorkspace" id="analystWorkspace">
+    <div class="sectionHeading analystHeading">
+      <div>
+        <span class="eyebrow">MATCH INTELLIGENCE</span>
+        <h2>Evidence before opinion.</h2>
+        <p class="muted">
+          Analyse verified match data with transparent evidence, confidence and limitations.
+        </p>
+      </div>
+      <span class="analystVerifiedBadge">VERIFIED DATA</span>
+    </div>
+
+    <div class="analystControls">
+      <label for="analystMatch">
+        Match
+        <select id="analystMatch">
+          <option value="">Choose a verified match</option>
+        </select>
+      </label>
+
+      <button type="button" id="analystRun">
+        Analyse match
+      </button>
+    </div>
+
+    <div id="analystStatus" class="analystStatus hidden"></div>
+
+    <div id="analystResult" class="analystResult hidden">
+      <div class="analystResultHead">
+        <div>
+          <span class="eyebrow">ANALYST VIEW</span>
+          <h3 id="analystHeadline">—</h3>
+        </div>
+        <span id="analystConfidence" class="analystConfidence">—</span>
+      </div>
+
+      <div class="analystEvidenceSummary">
+        <div>
+          <strong id="analystEvidenceCount">0</strong>
+          <small>Evidence points</small>
+        </div>
+        <div>
+          <strong id="analystLayerCount">0/0</strong>
+          <small>Evidence layers</small>
+        </div>
+        <div>
+          <strong id="analystWarningCount">0</strong>
+          <small>Limitations</small>
+        </div>
+      </div>
+
+      <div class="analystInsights">
+        <div class="analystSubhead">
+          <span class="eyebrow">REASONING</span>
+          <strong>What the verified data shows</strong>
+        </div>
+        <div id="analystInsightsList"></div>
+      </div>
+
+      <div id="analystWarnings" class="analystWarnings hidden">
+        <div class="analystSubhead">
+          <span class="eyebrow">LIMITATIONS</span>
+          <strong>Read the evidence carefully</strong>
+        </div>
+        <div id="analystWarningsList"></div>
+      </div>
+
+      <div class="analystIntegrity">
+        <span>✓ Evidence-backed</span>
+        <span>✓ No fabricated data</span>
+        <span>✓ No prediction claim</span>
+      </div>
+    </div>
+  </section>
+
   <!-- ACCOUNT & PLANS -->
   <section class="card account accountVault">
     <div class="accountHead">

@@ -4,6 +4,12 @@ const path = require("path");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const Database = require("better-sqlite3")(path.join(__dirname,"data.db"));
+const { syncLiveSportyBetEvents } = require("./engine/eventSync");
+const {
+  findEvents,
+  getEventMarkets,
+  getMarketSelections
+} = require("./engine/eventStore");
 function hashPassword(password){
   const salt=crypto.randomBytes(16).toString("hex");
   const hash=crypto.scryptSync(String(password),salt,64,{
@@ -821,6 +827,118 @@ app.post("/api/api-keys/:id/revoke",(req,res)=>{
 
 app.get("/api/bookmakers",(req,res)=>res.json(Object.entries(BOOKMAKERS).map(([key,v])=>({key,...v}))));
 
+function buildLiveCentreEvents(){
+  const now = Date.now();
+
+  return findEvents("sportybet", {})
+    .filter(event => {
+      const start = Date.parse(event.start_time || "");
+      return Number.isFinite(start) && start >= now;
+    })
+    .slice(0,50)
+    .map(event => {
+      const markets = getEventMarkets(event.id)
+        .slice(0,8)
+        .map(market => ({
+          id: market.id,
+          type: market.market_type,
+          name: market.market_name,
+          line: market.line,
+          selections: getMarketSelections(market.id)
+            .slice(0,12)
+            .map(selection => ({
+              id: selection.id,
+              type: selection.selection_type,
+              name: selection.selection_name,
+              value: selection.selection_value,
+              bookmakerOutcomeId: selection.bookmaker_outcome_id
+            }))
+        }));
+
+      return {
+        id: event.id,
+        externalId: event.external_id,
+        bookmaker: event.bookmaker,
+        sport: event.sport,
+        competition: event.competition,
+        homeTeam: event.home_team,
+        awayTeam: event.away_team,
+        startTime: event.start_time,
+        status: "Upcoming",
+        markets
+      };
+    });
+}
+
+app.get("/api/live-centre",(req,res)=>{
+  const user = authUser(req);
+
+  if(!user){
+    return res.status(401).json({
+      message:"Not signed in."
+    });
+  }
+
+  try{
+    const events = buildLiveCentreEvents();
+
+    res.json({
+      success:true,
+      source:"internal",
+      bookmaker:"sportybet",
+      refreshedAt:new Date().toISOString(),
+      liveAvailable:false,
+      events
+    });
+  }catch(error){
+    console.error(
+      "LIVE_CENTRE_READ_ERROR",
+      error && error.stack ? error.stack : error
+    );
+
+    res.status(500).json({
+      success:false,
+      message:"Unable to load Live Centre."
+    });
+  }
+});
+
+app.post("/api/live-centre/refresh",async(req,res)=>{
+  const user = authUser(req);
+
+  if(!user){
+    return res.status(401).json({
+      message:"Not signed in."
+    });
+  }
+
+  try{
+    const result = await syncLiveSportyBetEvents({});
+
+    const events = buildLiveCentreEvents();
+
+    res.json({
+      success:true,
+      source:"internal",
+      bookmaker:"sportybet",
+      refreshedAt:new Date().toISOString(),
+      syncedCount:Array.isArray(result) ? result.length : 0,
+      liveAvailable:false,
+      events
+    });
+  }catch(error){
+    console.error(
+      "LIVE_CENTRE_REFRESH_ERROR",
+      error && error.stack ? error.stack : error
+    );
+
+    res.status(502).json({
+      success:false,
+      message:"Live Centre refresh failed."
+    });
+  }
+});
+
 app.post("/api/forgot-password", authRateLimit,async(req,res)=>{
   try{
     const email=String(req.body.email||"").trim().toLowerCase();
@@ -1138,6 +1256,164 @@ app.post("/api/convert",async(req,res)=>{
     res.status(502).json({
       message:e.message||"Conversion failed."
     });
+  }
+});
+
+
+app.get("/api/analyst/matches",async(req,res)=>{
+  let adapter=null;
+
+  try{
+    const user=authUser(req) || apiKeyUser(req);
+
+    if(!user)
+      return res.status(401).json({
+        success:false,
+        message:"Please log in to access analyst matches."
+      });
+
+    const { createSqliteAdapter } = require("./engine/global/sqliteAdapter");
+
+    adapter=createSqliteAdapter(path.join(__dirname,"data.db"));
+
+    const rows=adapter.all(`
+      SELECT
+        m.id,
+        m.home_team_id AS homeTeamId,
+        m.away_team_id AS awayTeamId,
+        ht.canonical_name AS homeTeam,
+        at.canonical_name AS awayTeam,
+        c.canonical_name AS competition,
+        m.scheduled_start AS scheduledStart,
+        m.status
+      FROM bcp_matches m
+      JOIN bcp_teams ht ON ht.id=m.home_team_id
+      JOIN bcp_teams at ON at.id=m.away_team_id
+      LEFT JOIN bcp_competitions c ON c.id=m.competition_id
+      WHERE m.status IN ('scheduled','live','halftime','finished')
+        AND m.home_team_id <> m.away_team_id
+        AND m.home_team_id IS NOT NULL
+        AND m.away_team_id IS NOT NULL
+        AND ht.canonical_name NOT LIKE 'BCP Test%'
+        AND at.canonical_name NOT LIKE 'BCP Test%'
+        AND ht.canonical_name NOT LIKE '%Test Home%'
+        AND at.canonical_name NOT LIKE '%Test Away%'
+      ORDER BY
+        CASE
+          WHEN m.status IN ('scheduled','live','halftime') THEN 0
+          ELSE 1
+        END,
+        m.scheduled_start DESC,
+        m.id DESC
+      LIMIT 50
+    `);
+
+    return res.status(200).json({
+      success:true,
+      matches:rows
+    });
+
+  }catch(e){
+    console.error("B7_ANALYST_MATCHES_API_ERROR",e);
+    return res.status(500).json({
+      success:false,
+      message:"Unable to load verified analyst matches."
+    });
+
+  }finally{
+    if(adapter){
+      try{
+        adapter.close();
+      }catch(error){
+        console.error("B7_ANALYST_MATCHES_API_CLOSE_ERROR",error);
+      }
+    }
+  }
+});
+
+app.post("/api/analyst/match",async(req,res)=>{
+  let adapter=null;
+
+  try{
+    const user=authUser(req) || apiKeyUser(req);
+
+    if(!user)
+      return res.status(401).json({
+        success:false,
+        message:"Please log in to access the match analyst."
+      });
+
+    const homeTeamId=Number(req.body?.homeTeamId);
+    const awayTeamId=Number(req.body?.awayTeamId);
+
+    if(
+      !Number.isInteger(homeTeamId) ||
+      homeTeamId<=0 ||
+      !Number.isInteger(awayTeamId) ||
+      awayTeamId<=0 ||
+      homeTeamId===awayTeamId
+    ){
+      return res.status(400).json({
+        success:false,
+        message:"Valid, different home and away team IDs are required."
+      });
+    }
+
+    const { createSqliteAdapter } = require("./engine/global/sqliteAdapter");
+    const { createRepository } = require("./engine/global/repository");
+    const { buildMatchAnalystService } = require("./engine/global/analystService");
+
+    adapter=createSqliteAdapter(path.join(__dirname,"data.db"));
+    const repository=createRepository(adapter);
+
+    const result=await buildMatchAnalystService(repository,{
+      homeTeamId,
+      awayTeamId,
+      betModel:req.body?.betModel ?? null
+    });
+
+    return res.status(200).json({
+      success:true,
+      status:"analysed",
+      analyst:result.analyst,
+      intelligence:result.intelligence,
+      homeTeamProfile:result.homeTeamProfile,
+      awayTeamProfile:result.awayTeamProfile,
+      betDNA:result.betDNA,
+      marketDNA:result.marketDNA,
+      evidenceSource:result.evidenceSource
+    });
+
+  }catch(e){
+    console.error("B7_ANALYST_API_ERROR",e);
+
+    const message=String(e?.message||"Unable to analyse this match.");
+
+    if(
+      message.startsWith("BCP_ANALYST_SERVICE_") ||
+      message==="Unsupported universal bet model version." ||
+      message==="Universal bet model is required."
+    ){
+      return res.status(422).json({
+        success:false,
+        status:"validation_failed",
+        message
+      });
+    }
+
+    return res.status(500).json({
+      success:false,
+      message:"Unable to produce the verified match analysis."
+    });
+
+  }finally{
+    if(adapter){
+      try{
+        adapter.close();
+      }catch(error){
+        console.error("B7_ANALYST_API_CLOSE_ERROR",error);
+      }
+    }
   }
 });
 

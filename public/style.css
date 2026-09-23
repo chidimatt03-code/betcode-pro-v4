@@ -3207,3 +3207,281 @@ footer{
     min-height:40px;
   }
 }
+
+/* ===== B7 EVIDENCE-BASED MATCH INTELLIGENCE ===== */
+
+.analystWorkspace{
+  position:relative;
+  overflow:hidden;
+  margin-bottom:14px;
+}
+
+.analystWorkspace::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:2px;
+  background:var(--accent);
+  opacity:.75;
+}
+
+.analystHeading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:18px;
+}
+
+.analystHeading h2{
+  margin:5px 0 6px;
+}
+
+.analystHeading p{
+  margin:0;
+  max-width:520px;
+  line-height:1.5;
+}
+
+.analystVerifiedBadge{
+  flex:0 0 auto;
+  padding:7px 9px;
+  border:1px solid rgba(183,255,60,.24);
+  border-radius:999px;
+  color:var(--accent);
+  background:rgba(183,255,60,.07);
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.8px;
+}
+
+.analystControls{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  align-items:end;
+  padding:14px;
+  border:1px solid var(--border);
+  border-radius:18px;
+  background:var(--surface-2);
+}
+
+.analystControls label{
+  display:block;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:700;
+}
+
+.analystControls select{
+  width:100%;
+  margin-top:7px;
+}
+
+.analystControls button{
+  min-height:46px;
+  white-space:nowrap;
+}
+
+.analystStatus{
+  margin-top:10px;
+  padding:11px 13px;
+  border-radius:13px;
+  border:1px solid var(--border);
+  color:var(--muted);
+  background:var(--surface-2);
+  font-size:12px;
+  line-height:1.45;
+}
+
+.analystResult{
+  margin-top:14px;
+  padding-top:16px;
+  border-top:1px solid var(--border);
+}
+
+.analystResultHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+}
+
+.analystResultHead h3{
+  margin:5px 0 0;
+  font-size:18px;
+  line-height:1.35;
+}
+
+.analystConfidence{
+  flex:0 0 auto;
+  padding:7px 10px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  color:var(--text);
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.7px;
+}
+
+.analystEvidenceSummary{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-top:14px;
+}
+
+.analystEvidenceSummary>div{
+  padding:12px 10px;
+  border:1px solid var(--border);
+  border-radius:15px;
+  background:var(--surface);
+}
+
+.analystEvidenceSummary strong,
+.analystEvidenceSummary small{
+  display:block;
+}
+
+.analystEvidenceSummary strong{
+  font-size:17px;
+}
+
+.analystEvidenceSummary small{
+  margin-top:3px;
+  color:var(--muted);
+  font-size:9px;
+}
+
+.analystInsights,
+.analystWarnings{
+  margin-top:16px;
+}
+
+.analystSubhead{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  margin-bottom:9px;
+}
+
+.analystSubhead strong{
+  font-size:13px;
+}
+
+.analystInsight{
+  padding:13px;
+  margin-top:8px;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:var(--surface-2);
+}
+
+.analystInsightTitle{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  font-weight:800;
+}
+
+.analystInsightTitle::before{
+  content:"";
+  width:6px;
+  height:6px;
+  flex:0 0 auto;
+  border-radius:50%;
+  background:var(--accent);
+}
+
+.analystInsight p{
+  margin:7px 0 0;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.55;
+}
+
+.analystInsight .analystEvidenceLine{
+  margin-top:8px;
+  color:var(--text);
+  font-size:10px;
+  line-height:1.45;
+}
+
+.analystWarning{
+  padding:11px 12px;
+  margin-top:7px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:var(--surface-2);
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.5;
+}
+
+.analystIntegrity{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:15px;
+  padding-top:13px;
+  border-top:1px solid var(--border);
+}
+
+.analystIntegrity span{
+  padding:6px 8px;
+  border-radius:999px;
+  background:var(--surface-3);
+  color:var(--muted);
+  font-size:9px;
+  font-weight:700;
+}
+
+@media (max-width:600px){
+  .analystHeading{
+    flex-direction:column;
+    gap:10px;
+  }
+
+  .analystVerifiedBadge{
+    align-self:flex-start;
+  }
+
+  .analystControls{
+    grid-template-columns:1fr;
+  }
+
+  .analystControls button{
+    width:100%;
+  }
+
+  .analystResultHead{
+    flex-direction:column;
+  }
+
+  .analystConfidence{
+    align-self:flex-start;
+  }
+}
+
+@media (max-width:420px){
+  .analystEvidenceSummary{
+    gap:6px;
+  }
+
+  .analystEvidenceSummary>div{
+    padding:10px 8px;
+  }
+
+  .analystEvidenceSummary strong{
+    font-size:15px;
+  }
+
+  .analystEvidenceSummary small{
+    font-size:8px;
+  }
+}

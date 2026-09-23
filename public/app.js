@@ -447,6 +447,9 @@ async function auth(action){
     $("accountState").textContent =
       `${d.plan || "free"} · ${d.credits ?? 10} conversions remaining`;
     updateDashboard(d);
+    if(typeof initB7Analyst==="function"){
+      await initB7Analyst();
+    }
 
     setTimeout(()=>{
       $("loginScreen").classList.add("hidden");
@@ -540,6 +543,9 @@ async function verifyRegistration(){
     $("accountState").textContent =
       `${d.plan || "free"} · ${d.credits ?? 10} conversions remaining`;
     updateDashboard(d);
+    if(typeof initB7Analyst==="function"){
+      await initB7Analyst();
+    }
 
     status.textContent =
       "✓ Email verified. Your account has been created.";
@@ -672,6 +678,9 @@ $("logout").onclick=async()=>{
       $("accountState").textContent =
         `${d.plan || "free"} · ${d.credits ?? 0} conversions remaining`;
       updateDashboard(d);
+      if(typeof initB7Analyst==="function"){
+        await initB7Analyst();
+      }
 
       $("loginScreen").classList.add("hidden");
       $("registerScreen").classList.add("hidden");
@@ -1053,3 +1062,201 @@ $("convert").onclick=async()=>{
     );
   }
 };
+
+/* ===== B7 EVIDENCE-BASED MATCH ANALYST ===== */
+
+async function initB7Analyst(){
+  const matchSelect=$("analystMatch");
+  const runButton=$("analystRun");
+  const status=$("analystStatus");
+  const result=$("analystResult");
+
+  if(!matchSelect||!runButton||!status||!result) return;
+
+  const token=localStorage.getItem("betcode_token");
+  if(!token) return;
+
+  function showStatus(message){
+    status.textContent=message;
+    status.classList.remove("hidden");
+  }
+
+  function hideStatus(){
+    status.textContent="";
+    status.classList.add("hidden");
+  }
+
+  function escapeHTML(value){
+    return String(value??"")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#039;");
+  }
+
+  function formatInsight(insight){
+    const evidence=Array.isArray(insight?.evidence)
+      ? insight.evidence
+      : [];
+
+    const evidenceText=evidence.map(item=>{
+      const statement=escapeHTML(item?.statement||"");
+      const sample=item?.sampleSize!=null
+        ? ` · sample ${escapeHTML(item.sampleSize)}`
+        : "";
+      return `<div class="analystEvidenceLine">${statement}${sample}</div>`;
+    }).join("");
+
+    return `
+      <article class="analystInsight">
+        <div class="analystInsightTitle">
+          ${escapeHTML(insight?.title||"Evidence")}
+        </div>
+        <p><strong>Observation:</strong> ${escapeHTML(insight?.observation||"—")}</p>
+        <p><strong>Interpretation:</strong> ${escapeHTML(insight?.interpretation||"—")}</p>
+        ${insight?.limitation
+          ? `<p><strong>Limitation:</strong> ${escapeHTML(insight.limitation)}</p>`
+          : ""}
+        ${evidenceText}
+      </article>
+    `;
+  }
+
+  function renderAnalysis(data){
+    const analyst=data?.analyst||{};
+    const insights=Array.isArray(analyst.insights)
+      ? analyst.insights
+      : [];
+    const warnings=Array.isArray(analyst.warnings)
+      ? analyst.warnings
+      : [];
+    const matrix=analyst.evidenceMatrix||{};
+
+    $("analystHeadline").textContent=analyst.headline||"No strong conclusion available.";
+    $("analystConfidence").textContent=analyst.confidence||"insufficient";
+    $("analystEvidenceCount").textContent=Array.isArray(analyst.evidence)
+      ? analyst.evidence.length
+      : 0;
+    $("analystLayerCount").textContent=
+      `${matrix.availableLayers??0}/${matrix.totalLayers??0}`;
+    $("analystWarningCount").textContent=warnings.length;
+
+    $("analystInsightsList").innerHTML=insights.length
+      ? insights.map(formatInsight).join("")
+      : `<div class="analystWarning">There is not enough verified evidence to produce a detailed insight.</div>`;
+
+    if(warnings.length){
+      $("analystWarningsList").innerHTML=warnings
+        .map(w=>`<div class="analystWarning">${escapeHTML(w)}</div>`)
+        .join("");
+      $("analystWarnings").classList.remove("hidden");
+    }else{
+      $("analystWarningsList").innerHTML="";
+      $("analystWarnings").classList.add("hidden");
+    }
+
+    result.classList.remove("hidden");
+  }
+
+  async function loadMatches(){
+    try{
+      const response=await fetch("/api/analyst/matches",{
+        headers:{
+          "Authorization":"Bearer "+token
+        }
+      });
+
+      const data=await response.json();
+
+      if(!response.ok||!data.success)
+        throw new Error(data.message||"Unable to load verified matches.");
+
+      const matches=Array.isArray(data.matches)?data.matches:[];
+
+      for(const match of matches){
+        const option=document.createElement("option");
+        option.value=String(match.id);
+
+        const date=match.scheduledStart
+          ? new Date(match.scheduledStart)
+          : null;
+
+        const dateText=date&&!Number.isNaN(date.getTime())
+          ? date.toLocaleDateString(undefined,{day:"numeric",month:"short"})
+          : "";
+
+        option.textContent=
+          `${match.homeTeam} vs ${match.awayTeam}`+
+          `${match.competition?" · "+match.competition:""}`+
+          `${dateText?" · "+dateText:""}`;
+
+        option.dataset.homeTeamId=String(match.homeTeamId);
+        option.dataset.awayTeamId=String(match.awayTeamId);
+
+        matchSelect.appendChild(option);
+      }
+
+      if(!matches.length){
+        showStatus("No verified matches are currently available for analysis.");
+        runButton.disabled=true;
+      }else{
+        hideStatus();
+      }
+    }catch(error){
+      showStatus(error.message||"Unable to load verified matches.");
+      runButton.disabled=true;
+    }
+  }
+
+  runButton.addEventListener("click",async()=>{
+    const option=matchSelect.selectedOptions[0];
+
+    if(!option||!option.value){
+      showStatus("Choose a verified match first.");
+      return;
+    }
+
+    const homeTeamId=Number(option.dataset.homeTeamId);
+    const awayTeamId=Number(option.dataset.awayTeamId);
+
+    if(!Number.isInteger(homeTeamId)||!Number.isInteger(awayTeamId)){
+      showStatus("This match does not have valid team identities.");
+      return;
+    }
+
+    runButton.disabled=true;
+    runButton.textContent="Analysing…";
+    hideStatus();
+
+    try{
+      const response=await fetch("/api/analyst/match",{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "Authorization":"Bearer "+token
+        },
+        body:JSON.stringify({
+          homeTeamId,
+          awayTeamId
+        })
+      });
+
+      const data=await response.json();
+
+      if(!response.ok||!data.success)
+        throw new Error(data.message||"Unable to produce the verified analysis.");
+
+      renderAnalysis(data);
+      result.scrollIntoView({behavior:"smooth",block:"nearest"});
+    }catch(error){
+      showStatus(error.message||"Unable to produce the verified analysis.");
+      result.classList.add("hidden");
+    }finally{
+      runButton.disabled=false;
+      runButton.textContent="Analyse match";
+    }
+  });
+
+  await loadMatches();
+}
