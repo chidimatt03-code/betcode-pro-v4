@@ -259,6 +259,37 @@ function createRepository(adapter) {
       );
     },
 
+    async findTeamUpcomingMatches(teamId, { limit = 10 } = {}) {
+      const normalizedTeamId = Number(teamId);
+      const normalizedLimit = Number(limit);
+
+      if (!Number.isInteger(normalizedTeamId) || normalizedTeamId <= 0) {
+        throw new TypeError("BCP_TEAM_UPCOMING_TEAM_ID_INVALID");
+      }
+
+      if (!Number.isInteger(normalizedLimit) || normalizedLimit <= 0) {
+        throw new TypeError("BCP_TEAM_UPCOMING_LIMIT_INVALID");
+      }
+
+      return db.all(
+        `SELECT
+           m.*,
+           ht.canonical_name AS home_team_name,
+           at.canonical_name AS away_team_name,
+           c.canonical_name AS competition_name
+         FROM ${TABLES.matches} m
+         JOIN ${TABLES.teams} ht ON ht.id = m.home_team_id
+         JOIN ${TABLES.teams} at ON at.id = m.away_team_id
+         LEFT JOIN ${TABLES.competitions} c ON c.id = m.competition_id
+         WHERE m.status = 'scheduled'
+           AND (m.home_team_id = ? OR m.away_team_id = ?)
+           AND m.scheduled_start IS NOT NULL
+         ORDER BY m.scheduled_start ASC, m.id ASC
+         LIMIT ?`,
+        [normalizedTeamId, normalizedTeamId, normalizedLimit]
+      );
+    },
+
     async createMatchSource({
       matchId,
       sourceId,

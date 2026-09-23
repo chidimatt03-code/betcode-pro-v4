@@ -1,6 +1,7 @@
 const { calculateForm } = require("./formCalculator");
 const { calculateHomeAwayForm } = require("./homeAwayFormCalculator");
 const { calculateScoring } = require("./scoringCalculator");
+const { calculateH2H } = require("./h2hCalculator");
 
 function normalizeTeamId(teamId) {
   const id = Number(teamId);
@@ -25,7 +26,9 @@ function normalizeResults(results) {
 function buildTeamProfile({
   team,
   results,
-  formLimit = 5
+  formLimit = 5,
+  opponentTeamId = null,
+  h2hLimit = 5
 } = {}) {
   if (!team || typeof team !== "object") {
     throw new TypeError("BCP_TEAM_PROFILE_TEAM_INVALID");
@@ -57,6 +60,38 @@ function buildTeamProfile({
     teamId
   });
 
+  let h2h = null;
+
+  if (opponentTeamId !== null && opponentTeamId !== undefined) {
+    const normalizedOpponentTeamId = normalizeTeamId(opponentTeamId);
+
+    if (normalizedOpponentTeamId === teamId) {
+      throw new TypeError("BCP_TEAM_PROFILE_H2H_OPPONENT_INVALID");
+    }
+
+    h2h = calculateH2H(finishedResults, {
+      homeTeamId: teamId,
+      awayTeamId: normalizedOpponentTeamId,
+      limit: h2hLimit
+    });
+  }
+
+  const recentMatches = Object.freeze(
+    teamResults.slice(0, formLimit).map(result => Object.freeze({
+      matchId: Number(result.match_id),
+      homeTeamId: Number(result.home_team_id),
+      awayTeamId: Number(result.away_team_id),
+      homeTeamName: result.home_team_name || null,
+      awayTeamName: result.away_team_name || null,
+      homeScore: Number(result.home_score),
+      awayScore: Number(result.away_score),
+      competitionName: result.competition_name || result.competition || null,
+      scheduledStart: result.scheduled_start || null,
+      observedAt: result.observed_at || null,
+      status: result.status
+    }))
+  );
+
   const competitions = new Set();
 
   for (const result of teamResults) {
@@ -78,6 +113,8 @@ function buildTeamProfile({
     }),
 
     form,
+    recentMatches,
+    h2h,
 
     homeAway,
 
