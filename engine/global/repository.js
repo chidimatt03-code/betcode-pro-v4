@@ -419,13 +419,16 @@ function createRepository(adapter) {
            r.*,
            m.home_team_id,
            m.away_team_id,
+           m.competition_id,
            m.scheduled_start,
            ht.canonical_name AS home_team_name,
-           at.canonical_name AS away_team_name
+           at.canonical_name AS away_team_name,
+           c.canonical_name AS competition_name
          FROM ${TABLES.matchResults} r
          JOIN ${TABLES.matches} m ON m.id = r.match_id
          JOIN ${TABLES.teams} ht ON ht.id = m.home_team_id
          JOIN ${TABLES.teams} at ON at.id = m.away_team_id
+         LEFT JOIN ${TABLES.competitions} c ON c.id = m.competition_id
          WHERE r.status = 'finished'
            AND (m.home_team_id = ? OR m.away_team_id = ?)
          ORDER BY
