@@ -506,7 +506,94 @@
     </button>
   </section>
 
-  <!-- MATCH RADAR -->
+  <!-- MY FOOTBALL DESK -->
+<section class="card footballDesk" id="footballDesk">
+  <div class="sectionHeading footballDeskHeading">
+    <div>
+      <span class="eyebrow">MY FOOTBALL DESK</span>
+      <h2>Your teams. Your matches. Your football workspace.</h2>
+      <p class="muted">
+        Save the teams and matches you follow so verified analysis and live signals stay close to what matters to you.
+      </p>
+    </div>
+    <span class="footballDeskBadge">PERSONAL WORKSPACE</span>
+  </div>
+
+  <div class="footballDeskSummary">
+    <div class="footballDeskSummaryItem">
+      <strong id="deskTeamCount">0</strong>
+      <small>Saved teams</small>
+    </div>
+    <div class="footballDeskSummaryItem">
+      <strong id="deskMatchCount">0</strong>
+      <small>Saved matches</small>
+    </div>
+  </div>
+
+  <div id="footballDeskStatus" class="status hidden"></div>
+
+  <div class="footballDeskGrid">
+    <div class="footballDeskPanel">
+      <div class="footballDeskPanelHead">
+        <div>
+          <span class="eyebrow">TEAMS</span>
+          <h3>Saved teams</h3>
+        </div>
+      </div>
+    <div class="footballDeskFollow">
+      <div class="footballDeskPanelHead">
+        <div>
+          <span class="eyebrow">FOLLOW VERIFIED FOOTBALL</span>
+          <h3>Add to your Desk</h3>
+        </div>
+      </div>
+
+      <div class="footballDeskFollowControls">
+        <select id="deskMatchSelect" class="footballDeskSelect">
+          <option value="">Loading verified matches...</option>
+        </select>
+        <button type="button" class="primary" id="deskSaveMatch">
+          Save match
+        </button>
+        <button type="button" class="secondary" id="deskSaveHomeTeam">
+          Save home team
+        </button>
+        <button type="button" class="secondary" id="deskSaveAwayTeam">
+          Save away team
+        </button>
+      </div>
+
+      <small class="footballDeskHint">
+        Matches and teams come from the verified football data already used by Match Analyst.
+      </small>
+    </div>
+
+      <div id="deskTeams" class="footballDeskList">
+        <div class="footballDeskEmpty">
+          <b>No teams saved yet.</b>
+          <span>Teams you save will appear here.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footballDeskPanel">
+      <div class="footballDeskPanelHead">
+        <div>
+          <span class="eyebrow">MATCHES</span>
+          <h3>Saved matches</h3>
+        </div>
+      </div>
+      <div id="deskMatches" class="footballDeskList">
+        <div class="footballDeskEmpty">
+          <b>No matches saved yet.</b>
+          <span>Matches you save will appear here.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MATCH RADAR -->
 <section class="card radarWorkspace" id="radarWorkspace">
   <div class="sectionHeading radarHeading">
     <div>
@@ -846,7 +933,60 @@
     <div id="history">No conversions yet.</div>
   </section>
 
-  <!-- SAFETY -->
+  <!-- B10 TRUST CENTRE -->
+<section class="card trustCentre" id="trustCentre">
+  <div class="sectionHeading trustCentreHeading">
+    <div>
+      <span class="eyebrow">TRUST CENTRE</span>
+      <h2>Clear evidence. Controlled systems. Honest results.</h2>
+      <p class="muted">BetCode Pro is designed to show what is verified, what is matched, and where uncertainty remains.</p>
+    </div>
+    <span class="trustCentreBadge">TRANSPARENCY</span>
+  </div>
+
+  <div class="trustCentreGrid">
+    <article class="trustCentreCard">
+      <div class="trustCentreIcon">✓</div>
+      <span class="eyebrow">ACCOUNT SECURITY</span>
+      <h3>Protected access</h3>
+      <p>Protected features require authenticated access, with verification and controlled sessions for account actions.</p>
+    </article>
+
+    <article class="trustCentreCard">
+      <div class="trustCentreIcon">◆</div>
+      <span class="eyebrow">FOOTBALL DATA</span>
+      <h3>Evidence before presentation</h3>
+      <p>Football features use structured match, team and competition data. Missing evidence should remain visible rather than being invented.</p>
+    </article>
+
+    <article class="trustCentreCard">
+      <div class="trustCentreIcon">⌁</div>
+      <span class="eyebrow">ANALYSIS</span>
+      <h3>Evidence before confidence</h3>
+      <p>Match Analyst and Match Radar distinguish available evidence from interpretation and limitations.</p>
+    </article>
+
+    <article class="trustCentreCard">
+      <div class="trustCentreIcon">↔</div>
+      <span class="eyebrow">CONVERSION</span>
+      <h3>Compatibility matters</h3>
+      <p>Booking-code conversion follows a structured source, canonical model and destination flow. Unsupported selections should not be presented as converted.</p>
+    </article>
+  </div>
+
+  <div class="trustCentrePrinciples">
+    <div><strong>Verified</strong><span>Supported by available system evidence.</span></div>
+    <div><strong>Matched</strong><span>Mapped through the structured data layer.</span></div>
+    <div><strong>Uncertain</strong><span>Shown as limited when evidence is insufficient.</span></div>
+  </div>
+
+  <div class="trustCentreNote">
+    <strong>Trust principle:</strong>
+    <span>Do not turn missing evidence into a confident-looking fact.</span>
+  </div>
+</section>
+
+<!-- SAFETY -->
   <section class="card info">
     <span class="eyebrow">IMPORTANT</span>
     <h3>Before you place the bet</h3>

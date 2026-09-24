@@ -3719,3 +3719,389 @@ footer{
     grid-template-columns:1fr;
   }
 }
+
+/* =========================
+   B9 — MY FOOTBALL DESK
+   ========================= */
+
+.footballDesk {
+  margin-top: 14px;
+}
+
+.footballDeskHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  max-width: none;
+  margin-bottom: 18px;
+}
+
+.footballDeskBadge {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  white-space: nowrap;
+}
+
+.footballDeskSummary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.footballDeskSummaryItem {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.footballDeskSummaryItem strong,
+.footballDeskSummaryItem small {
+  display: block;
+}
+
+.footballDeskSummaryItem strong {
+  font-size: 20px;
+}
+
+.footballDeskSummaryItem small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.footballDeskGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.footballDeskPanel {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(255,255,255,.02);
+}
+
+.footballDeskPanelHead {
+  margin-bottom: 12px;
+}
+
+.footballDeskPanelHead h3 {
+  margin: 5px 0 0;
+  font-size: 16px;
+}
+
+.footballDeskList {
+  display: grid;
+  gap: 8px;
+}
+
+.footballDeskEmpty {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+}
+
+.footballDeskEmpty b {
+  font-size: 13px;
+}
+
+.footballDeskEmpty span {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.footballDeskItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.footballDeskItemMain {
+  min-width: 0;
+}
+
+.footballDeskItemMain strong,
+.footballDeskItemMain small {
+  display: block;
+}
+
+.footballDeskItemMain strong {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.footballDeskItemMain small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.footballDeskRemove {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 8px 10px;
+}
+
+@media (max-width: 600px) {
+  .footballDeskHeading {
+    display: block;
+  }
+
+  .footballDeskBadge {
+    display: inline-block;
+    margin-top: 10px;
+  }
+
+  .footballDeskGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .footballDeskSummary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .footballDeskPanel {
+    padding: 13px;
+  }
+
+  .footballDeskItem {
+    align-items: flex-start;
+  }
+}
+
+/* =========================
+   B9 — DESK DISCOVERY
+   ========================= */
+
+.footballDeskFollow {
+  margin-bottom: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(255,255,255,.02);
+}
+
+.footballDeskFollowControls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.footballDeskSelect {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+}
+
+.footballDeskHint {
+  display: block;
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .footballDeskFollowControls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .footballDeskSelect {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 420px) {
+  .footballDeskFollowControls {
+    grid-template-columns: 1fr;
+  }
+
+  .footballDeskSelect {
+    grid-column: auto;
+  }
+}
+
+/* =========================
+   B10 — TRUST CENTRE
+   ========================= */
+
+.trustCentre {
+  margin-top: 14px;
+}
+
+.trustCentreHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  max-width: none;
+  margin-bottom: 20px;
+}
+
+.trustCentreBadge {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  white-space: nowrap;
+}
+
+.trustCentreGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.trustCentreCard {
+  position: relative;
+  overflow: hidden;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(255,255,255,.02);
+}
+
+.trustCentreCard::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: var(--accent);
+  opacity: .65;
+}
+
+.trustCentreIcon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+  border: 1px solid rgba(183,255,60,.22);
+  border-radius: 12px;
+  background: rgba(183,255,60,.07);
+  color: var(--accent);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.trustCentreCard h3 {
+  margin: 6px 0 8px;
+  font-size: 15px;
+}
+
+.trustCentreCard p {
+  margin: 0;
+  color: rgba(255,255,255,.66);
+  line-height: 1.65;
+  font-size: 12px;
+}
+
+.trustCentrePrinciples {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.trustCentrePrinciples > div {
+  display: grid;
+  gap: 4px;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.trustCentrePrinciples strong {
+  font-size: 12px;
+}
+
+.trustCentrePrinciples span {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.trustCentreNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 15px 16px;
+  border: 1px solid rgba(183,255,60,.14);
+  border-radius: 15px;
+  background: rgba(183,255,60,.035);
+}
+
+.trustCentreNote strong {
+  flex: 0 0 auto;
+  color: #fff;
+  font-size: 12px;
+}
+
+.trustCentreNote span {
+  color: rgba(255,255,255,.62);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+@media (max-width: 720px) {
+  .trustCentreHeading {
+    display: block;
+  }
+
+  .trustCentreBadge {
+    display: inline-block;
+    margin-top: 10px;
+  }
+
+  .trustCentreGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .trustCentrePrinciples {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .trustCentreCard {
+    padding: 14px;
+  }
+
+  .trustCentreNote {
+    display: grid;
+  }
+}

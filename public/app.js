@@ -331,6 +331,12 @@ async function auth(action){
     if(typeof initB8Radar==="function"){
       await initB8Radar();
     }
+    if(typeof initB9FootballDesk==="function"){
+      await initB9FootballDesk();
+    }
+    if(typeof initB9DeskDiscovery==="function"){
+      await initB9DeskDiscovery();
+    }
 
     setTimeout(()=>{
       $("loginScreen").classList.add("hidden");
@@ -429,6 +435,12 @@ async function verifyRegistration(){
     }
     if(typeof initB8Radar==="function"){
       await initB8Radar();
+    }
+    if(typeof initB9FootballDesk==="function"){
+      await initB9FootballDesk();
+    }
+    if(typeof initB9DeskDiscovery==="function"){
+      await initB9DeskDiscovery();
     }
 
     status.textContent =
@@ -567,6 +579,12 @@ $("logout").onclick=async()=>{
       }
       if(typeof initB8Radar==="function"){
         await initB8Radar();
+      }
+      if(typeof initB9FootballDesk==="function"){
+        await initB9FootballDesk();
+      }
+      if(typeof initB9DeskDiscovery==="function"){
+        await initB9DeskDiscovery();
       }
 
       $("loginScreen").classList.add("hidden");
@@ -1319,4 +1337,419 @@ async function initB7Analyst(){
 
   window.initB8Radar=loadRadar;
   loadRadar();
+})();
+
+/* =========================
+   B9 — MY FOOTBALL DESK
+   ========================= */
+
+(function initB9FootballDesk(){
+  const workspace = $("footballDesk");
+  if(!workspace) return;
+
+  const teamCount = $("deskTeamCount");
+  const matchCount = $("deskMatchCount");
+  const teamsEl = $("deskTeams");
+  const matchesEl = $("deskMatches");
+  const statusEl = $("footballDeskStatus");
+
+  function showStatus(message, type="error"){
+    if(!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.className = `status ${type}`;
+  }
+
+  function clearStatus(){
+    if(!statusEl) return;
+    statusEl.textContent = "";
+    statusEl.className = "status hidden";
+  }
+
+  function formatDeskDate(value){
+    if(!value) return "Scheduled time unavailable";
+    const date = new Date(value);
+    if(Number.isNaN(date.getTime())) return "Scheduled time unavailable";
+    return date.toLocaleString(undefined,{
+      day:"2-digit",
+      month:"short",
+      hour:"2-digit",
+      minute:"2-digit"
+    });
+  }
+
+  function renderTeams(teams){
+    const items = Array.isArray(teams) ? teams : [];
+    if(teamCount) teamCount.textContent = String(items.length);
+
+    if(!teamsEl) return;
+
+    if(!items.length){
+      teamsEl.innerHTML = `
+        <div class="footballDeskEmpty">
+          <b>No teams saved yet.</b>
+          <span>Teams you save will appear here.</span>
+        </div>`;
+      return;
+    }
+
+    teamsEl.innerHTML = items.map(team => `
+      <article class="footballDeskItem">
+        <div class="footballDeskItemMain">
+          <strong>${escapeHTML(team.canonical_name || team.normalized_name || "Team")}</strong>
+          <small>
+            ${escapeHTML(team.country || team.region || "Football team")}
+          </small>
+        </div>
+        <button
+          type="button"
+          class="secondary footballDeskRemove"
+          data-desk-team-id="${Number(team.id) || 0}">
+          Remove
+        </button>
+      </article>
+    `).join("");
+  }
+
+  function renderMatches(matches){
+    const items = Array.isArray(matches) ? matches : [];
+    if(matchCount) matchCount.textContent = String(items.length);
+
+    if(!matchesEl) return;
+
+    if(!items.length){
+      matchesEl.innerHTML = `
+        <div class="footballDeskEmpty">
+          <b>No matches saved yet.</b>
+          <span>Matches you save will appear here.</span>
+        </div>`;
+      return;
+    }
+
+    matchesEl.innerHTML = items.map(match => `
+      <article class="footballDeskItem">
+        <div class="footballDeskItemMain">
+          <strong>
+            ${escapeHTML(match.home_team_name || "Home team")}
+            vs
+            ${escapeHTML(match.away_team_name || "Away team")}
+          </strong>
+          <small>
+            ${escapeHTML(match.competition_name || "Competition unavailable")}
+            ·
+            ${escapeHTML(formatDeskDate(match.scheduled_start))}
+          </small>
+        </div>
+        <button
+          type="button"
+          class="secondary footballDeskRemove"
+          data-desk-match-id="${Number(match.id) || 0}">
+          Remove
+        </button>
+      </article>
+    `).join("");
+  }
+
+  async function loadFootballDesk(){
+    const token = localStorage.getItem("betcode_token");
+
+    if(!token){
+      showStatus("Sign in to access My Football Desk.");
+      return;
+    }
+
+    try{
+      clearStatus();
+
+      const response = await fetch("/api/football-desk",{
+        headers:{
+          "Authorization":"Bearer "+token
+        }
+      });
+
+      const data = await response.json();
+
+      if(!response.ok || !data.success){
+        throw new Error(data.message || "Unable to load My Football Desk.");
+      }
+
+      renderTeams(data.savedTeams);
+      renderMatches(data.savedMatches);
+    }catch(error){
+      showStatus(error.message || "Unable to load My Football Desk.");
+    }
+  }
+
+  window.initB9FootballDesk = loadFootballDesk;
+  loadFootballDesk();
+})();
+
+/* =========================
+   B9 — DESK DISCOVERY
+   ========================= */
+
+(function initB9DeskDiscovery(){
+  const select = $("deskMatchSelect");
+  const saveMatchButton = $("deskSaveMatch");
+  const saveHomeButton = $("deskSaveHomeTeam");
+  const saveAwayButton = $("deskSaveAwayTeam");
+
+  if(!select || !saveMatchButton || !saveHomeButton || !saveAwayButton) return;
+
+  let verifiedMatches = [];
+
+  function selectedMatch(){
+    const id = Number(select.value);
+    if(!Number.isInteger(id) || id <= 0) return null;
+    return verifiedMatches.find(match => Number(match.id) === id) || null;
+  }
+
+  function setButtons(enabled){
+    saveMatchButton.disabled = !enabled;
+    saveHomeButton.disabled = !enabled;
+    saveAwayButton.disabled = !enabled;
+  }
+
+  async function loadDeskDiscovery(){
+    const token = localStorage.getItem("betcode_token");
+
+    if(!token){
+      select.innerHTML = '<option value="">Sign in to follow verified football</option>';
+      setButtons(false);
+      return;
+    }
+
+    try{
+      const response = await fetch("/api/analyst/matches",{
+        headers:{
+          "Authorization":"Bearer "+token
+        }
+      });
+
+      const data = await response.json();
+
+      if(!response.ok || !data.success){
+        throw new Error(data.message || "Unable to load verified matches.");
+      }
+
+      verifiedMatches = Array.isArray(data.matches) ? data.matches : [];
+
+      select.innerHTML = "";
+
+      if(!verifiedMatches.length){
+        select.innerHTML = '<option value="">No verified matches available</option>';
+        setButtons(false);
+        return;
+      }
+
+      for(const match of verifiedMatches){
+        const option = document.createElement("option");
+        option.value = String(match.id);
+
+        const date = match.scheduledStart
+          ? new Date(match.scheduledStart)
+          : null;
+
+        const dateText = date && !Number.isNaN(date.getTime())
+          ? date.toLocaleDateString(undefined,{
+              day:"numeric",
+              month:"short"
+            })
+          : "";
+
+        option.textContent =
+          `${match.homeTeam || "Home"} vs ${match.awayTeam || "Away"}` +
+          `${match.competition ? " · "+match.competition : ""}` +
+          `${dateText ? " · "+dateText : ""}`;
+
+        select.appendChild(option);
+      }
+
+      setButtons(true);
+    }catch(error){
+      select.innerHTML =
+        `<option value="">${escapeHTML(error.message || "Unable to load matches.")}</option>`;
+      setButtons(false);
+    }
+  }
+
+  async function saveDeskItem(url, body, successMessage){
+    const token = localStorage.getItem("betcode_token");
+
+    if(!token){
+      throw new Error("Sign in to use My Football Desk.");
+    }
+
+    const response = await fetch(url,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+token
+      },
+      body:JSON.stringify(body)
+    });
+
+    const data = await response.json();
+
+    if(!response.ok || !data.success){
+      throw new Error(data.message || "Unable to save this item.");
+    }
+
+    if(typeof window.initB9FootballDesk === "function"){
+      await window.initB9FootballDesk();
+    }
+
+    const status = $("footballDeskStatus");
+    if(status){
+      status.textContent = successMessage;
+      status.className = "status success";
+    }
+  }
+
+  saveMatchButton.addEventListener("click", async ()=>{
+    const match = selectedMatch();
+    if(!match) return;
+
+    try{
+      await saveDeskItem(
+        "/api/football-desk/matches",
+        {matchId:Number(match.id)},
+        "Match saved to your Football Desk."
+      );
+    }catch(error){
+      const status = $("footballDeskStatus");
+      if(status){
+        status.textContent = error.message;
+        status.className = "status error";
+      }
+    }
+  });
+
+  saveHomeButton.addEventListener("click", async ()=>{
+    const match = selectedMatch();
+    if(!match || !match.homeTeamId) return;
+
+    try{
+      await saveDeskItem(
+        "/api/football-desk/teams",
+        {teamId:Number(match.homeTeamId)},
+        "Home team saved to your Football Desk."
+      );
+    }catch(error){
+      const status = $("footballDeskStatus");
+      if(status){
+        status.textContent = error.message;
+        status.className = "status error";
+      }
+    }
+  });
+
+  saveAwayButton.addEventListener("click", async ()=>{
+    const match = selectedMatch();
+    if(!match || !match.awayTeamId) return;
+
+    try{
+      await saveDeskItem(
+        "/api/football-desk/teams",
+        {teamId:Number(match.awayTeamId)},
+        "Away team saved to your Football Desk."
+      );
+    }catch(error){
+      const status = $("footballDeskStatus");
+      if(status){
+        status.textContent = error.message;
+        status.className = "status error";
+      }
+    }
+  });
+
+  window.initB9DeskDiscovery = loadDeskDiscovery;
+  loadDeskDiscovery();
+})();
+
+/* =========================
+   B9 — DESK REMOVE ACTIONS
+   ========================= */
+
+(function initB9DeskRemoveActions(){
+  const teamsEl = $("deskTeams");
+  const matchesEl = $("deskMatches");
+
+  async function removeItem(url, successMessage){
+    const token = localStorage.getItem("betcode_token");
+
+    if(!token){
+      throw new Error("Sign in to manage My Football Desk.");
+    }
+
+    const response = await fetch(url,{
+      method:"DELETE",
+      headers:{
+        "Authorization":"Bearer "+token
+      }
+    });
+
+    const data = await response.json();
+
+    if(!response.ok || !data.success){
+      throw new Error(data.message || "Unable to remove this item.");
+    }
+
+    if(typeof window.initB9FootballDesk === "function"){
+      await window.initB9FootballDesk();
+    }
+
+    const status = $("footballDeskStatus");
+    if(status){
+      status.textContent = successMessage;
+      status.className = "status success";
+    }
+  }
+
+  teamsEl?.addEventListener("click", async event=>{
+    const button = event.target.closest("[data-desk-team-id]");
+    if(!button) return;
+
+    const teamId = Number(button.dataset.deskTeamId);
+    if(!Number.isInteger(teamId) || teamId <= 0) return;
+
+    button.disabled = true;
+
+    try{
+      await removeItem(
+        `/api/football-desk/teams/${teamId}`,
+        "Team removed from your Football Desk."
+      );
+    }catch(error){
+      button.disabled = false;
+      const status = $("footballDeskStatus");
+      if(status){
+        status.textContent = error.message;
+        status.className = "status error";
+      }
+    }
+  });
+
+  matchesEl?.addEventListener("click", async event=>{
+    const button = event.target.closest("[data-desk-match-id]");
+    if(!button) return;
+
+    const matchId = Number(button.dataset.deskMatchId);
+    if(!Number.isInteger(matchId) || matchId <= 0) return;
+
+    button.disabled = true;
+
+    try{
+      await removeItem(
+        `/api/football-desk/matches/${matchId}`,
+        "Match removed from your Football Desk."
+      );
+    }catch(error){
+      button.disabled = false;
+      const status = $("footballDeskStatus");
+      if(status){
+        status.textContent = error.message;
+        status.className = "status error";
+      }
+    }
+  });
 })();
