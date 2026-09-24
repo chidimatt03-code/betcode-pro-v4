@@ -259,6 +259,47 @@ function createRepository(adapter) {
       );
     },
 
+    async findRadarCandidates({ limit = 50 } = {}) {
+      const normalizedLimit = Number(limit);
+
+      if (
+        !Number.isInteger(normalizedLimit) ||
+        normalizedLimit <= 0
+      ) {
+        throw new TypeError("BCP_RADAR_CANDIDATE_LIMIT_INVALID");
+      }
+
+      return db.all(
+        `SELECT
+           m.*,
+           ht.canonical_name AS home_team_name,
+           at.canonical_name AS away_team_name,
+           c.canonical_name AS competition_name
+         FROM ${TABLES.matches} m
+         JOIN ${TABLES.teams} ht ON ht.id = m.home_team_id
+         JOIN ${TABLES.teams} at ON at.id = m.away_team_id
+         LEFT JOIN ${TABLES.competitions} c
+           ON c.id = m.competition_id
+         WHERE m.status IN ('scheduled', 'live', 'halftime')
+           AND m.home_team_id IS NOT NULL
+           AND m.away_team_id IS NOT NULL
+           AND m.home_team_id <> m.away_team_id
+           AND ht.canonical_name NOT LIKE 'BCP Test%'
+           AND at.canonical_name NOT LIKE 'BCP Test%'
+           AND ht.canonical_name NOT LIKE '%Test Home%'
+           AND at.canonical_name NOT LIKE '%Test Away%'
+         ORDER BY
+           CASE
+             WHEN m.status IN ('live', 'halftime') THEN 0
+             ELSE 1
+           END,
+           m.scheduled_start ASC,
+           m.id ASC
+         LIMIT ?`,
+        [normalizedLimit]
+      );
+    },
+
     async findTeamUpcomingMatches(teamId, { limit = 10 } = {}) {
       const normalizedTeamId = Number(teamId);
       const normalizedLimit = Number(limit);
@@ -329,9 +370,13 @@ function createRepository(adapter) {
 
     async findMatchSources(matchId) {
       return db.all(
-        `SELECT * FROM ${TABLES.matchSources}
-         WHERE match_id = ?
-         ORDER BY observed_at DESC, id DESC`,
+        `SELECT ms.*,
+                s.code AS source_code,
+                s.name AS source_name
+         FROM ${TABLES.matchSources} ms
+         JOIN ${TABLES.sources} s ON s.id = ms.source_id
+         WHERE ms.match_id = ?
+         ORDER BY ms.observed_at DESC, ms.id DESC`,
         [matchId]
       );
     },

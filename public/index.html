@@ -506,7 +506,57 @@
     </button>
   </section>
 
-  <!-- MATCH INTELLIGENCE -->
+  <!-- MATCH RADAR -->
+<section class="card radarWorkspace" id="radarWorkspace">
+  <div class="sectionHeading radarHeading">
+    <div>
+      <span class="eyebrow">MATCH RADAR</span>
+      <h2>Find the matches worth a closer look.</h2>
+      <p class="muted">
+        A verified-data discovery layer that surfaces measurable signals without pretending to predict outcomes.
+      </p>
+    </div>
+    <span class="radarVerifiedBadge">VERIFIED SIGNALS</span>
+  </div>
+
+  <div class="radarSummary">
+    <div class="radarSummaryItem">
+      <strong id="radarMatchCount">0</strong>
+      <small>Matches detected</small>
+    </div>
+    <div class="radarSummaryItem">
+      <strong id="radarSignalCount">0</strong>
+      <small>Usable signals</small>
+    </div>
+    <div class="radarSummaryItem">
+      <strong id="radarUpdatedAt">—</strong>
+      <small>Radar refresh</small>
+    </div>
+  </div>
+
+  <div id="radarStatus" class="radarStatus hidden"></div>
+
+  <div id="radarEmpty" class="radarEmpty">
+    <span class="radarEmptyIcon">⌁</span>
+    <div>
+      <strong>Radar is waiting for verified match observations.</strong>
+      <p>
+        No eligible upcoming or live matches are currently available from the global data engine.
+        Radar will populate when verified observations arrive.
+      </p>
+    </div>
+  </div>
+
+  <div id="radarResults" class="radarResults hidden"></div>
+
+  <div class="radarIntegrity">
+    <span>✓ Evidence-backed signals</span>
+    <span>✓ No fabricated data</span>
+    <span>✓ No prediction claim</span>
+  </div>
+</section>
+
+<!-- MATCH INTELLIGENCE -->
   <section class="card analystWorkspace" id="analystWorkspace">
     <div class="sectionHeading analystHeading">
       <div>

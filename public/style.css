@@ -3485,3 +3485,253 @@ footer{
     font-size:8px;
   }
 }
+
+/* =========================
+   B8 — MATCH RADAR
+   ========================= */
+
+.radarWorkspace{
+  margin-top:18px;
+  overflow:hidden;
+}
+
+.radarHeading{
+  align-items:flex-start;
+}
+
+.radarVerifiedBadge{
+  flex:0 0 auto;
+  padding:7px 10px;
+  border:1px solid rgba(183,255,60,.22);
+  border-radius:999px;
+  background:rgba(183,255,60,.07);
+  color:var(--accent);
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.08em;
+}
+
+.radarSummary{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-top:18px;
+}
+
+.radarSummaryItem{
+  min-width:0;
+  padding:13px;
+  border:1px solid var(--border);
+  border-radius:15px;
+  background:var(--surface-2);
+}
+
+.radarSummaryItem strong{
+  display:block;
+  color:var(--text);
+  font-size:18px;
+  line-height:1;
+}
+
+.radarSummaryItem small{
+  display:block;
+  margin-top:6px;
+  color:var(--muted);
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.03em;
+}
+
+.radarStatus{
+  margin-top:12px;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:13px;
+  background:var(--surface-2);
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.45;
+}
+
+.radarEmpty{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  margin-top:12px;
+  padding:17px;
+  border:1px dashed var(--border);
+  border-radius:17px;
+  background:var(--surface-2);
+}
+
+.radarEmptyIcon{
+  display:grid;
+  place-items:center;
+  flex:0 0 34px;
+  width:34px;
+  height:34px;
+  border-radius:11px;
+  background:var(--surface-3);
+  color:var(--accent);
+  font-size:20px;
+}
+
+.radarEmpty strong{
+  display:block;
+  color:var(--text);
+  font-size:12px;
+  line-height:1.35;
+}
+
+.radarEmpty p{
+  margin:6px 0 0;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.55;
+}
+
+.radarResults{
+  display:grid;
+  gap:10px;
+  margin-top:12px;
+}
+
+.radarCard{
+  padding:15px;
+  border:1px solid var(--border);
+  border-radius:17px;
+  background:var(--surface-2);
+}
+
+.radarCardHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.radarMatchName{
+  color:var(--text);
+  font-size:13px;
+  font-weight:800;
+  line-height:1.4;
+}
+
+.radarCompetition{
+  margin-top:4px;
+  color:var(--muted);
+  font-size:9px;
+}
+
+.radarAttention{
+  flex:0 0 auto;
+  padding:6px 8px;
+  border-radius:999px;
+  background:var(--surface-3);
+  color:var(--text);
+  font-size:9px;
+  font-weight:800;
+}
+
+.radarSignals{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:12px;
+}
+
+.radarSignal{
+  padding:6px 8px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  background:var(--surface-3);
+  color:var(--muted);
+  font-size:9px;
+  font-weight:700;
+}
+
+.radarSignalStrong{
+  border-color:rgba(183,255,60,.24);
+  color:var(--accent);
+}
+
+.radarSignalModerate{
+  color:var(--text);
+}
+
+.radarEvidence{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:7px;
+  margin-top:12px;
+}
+
+.radarEvidenceItem{
+  padding:9px;
+  border-radius:12px;
+  background:var(--surface-3);
+}
+
+.radarEvidenceItem strong{
+  display:block;
+  color:var(--text);
+  font-size:11px;
+}
+
+.radarEvidenceItem small{
+  display:block;
+  margin-top:3px;
+  color:var(--muted);
+  font-size:8px;
+}
+
+.radarIntegrity{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:15px;
+  padding-top:13px;
+  border-top:1px solid var(--border);
+}
+
+.radarIntegrity span{
+  padding:6px 8px;
+  border-radius:999px;
+  background:var(--surface-3);
+  color:var(--muted);
+  font-size:9px;
+  font-weight:700;
+}
+
+@media (max-width:600px){
+  .radarHeading{
+    flex-direction:column;
+    gap:10px;
+  }
+
+  .radarVerifiedBadge{
+    align-self:flex-start;
+  }
+}
+
+@media (max-width:420px){
+  .radarSummary{
+    gap:6px;
+  }
+
+  .radarSummaryItem{
+    padding:10px 8px;
+  }
+
+  .radarSummaryItem strong{
+    font-size:15px;
+  }
+
+  .radarSummaryItem small{
+    font-size:8px;
+  }
+
+  .radarEvidence{
+    grid-template-columns:1fr;
+  }
+}

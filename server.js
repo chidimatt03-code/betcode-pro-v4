@@ -1331,6 +1331,51 @@ app.get("/api/analyst/matches",async(req,res)=>{
   }
 });
 
+app.get("/api/radar",async(req,res)=>{
+  let adapter=null;
+
+  try{
+    const user=authUser(req) || apiKeyUser(req);
+
+    if(!user)
+      return res.status(401).json({
+        success:false,
+        message:"Please log in to access Match Radar."
+      });
+
+    const { createSqliteAdapter } = require("./engine/global/sqliteAdapter");
+    const { createRepository } = require("./engine/global/repository");
+    const { getRadar } = require("./engine/global/radarService");
+
+    adapter=createSqliteAdapter(path.join(__dirname,"data.db"));
+    const repository=createRepository(adapter);
+
+    const result=await getRadar(repository);
+
+    return res.status(200).json({
+      success:true,
+      ...result
+    });
+
+  }catch(e){
+    console.error("B8_RADAR_API_ERROR",e);
+
+    return res.status(500).json({
+      success:false,
+      message:"Unable to load Match Radar."
+    });
+
+  }finally{
+    if(adapter){
+      try{
+        adapter.close();
+      }catch(error){
+        console.error("B8_RADAR_API_CLOSE_ERROR",error);
+      }
+    }
+  }
+});
+
 app.post("/api/analyst/match",async(req,res)=>{
   let adapter=null;
 

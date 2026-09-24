@@ -450,6 +450,9 @@ async function auth(action){
     if(typeof initB7Analyst==="function"){
       await initB7Analyst();
     }
+    if(typeof initB8Radar==="function"){
+      await initB8Radar();
+    }
 
     setTimeout(()=>{
       $("loginScreen").classList.add("hidden");
@@ -545,6 +548,9 @@ async function verifyRegistration(){
     updateDashboard(d);
     if(typeof initB7Analyst==="function"){
       await initB7Analyst();
+    }
+    if(typeof initB8Radar==="function"){
+      await initB8Radar();
     }
 
     status.textContent =
@@ -680,6 +686,9 @@ $("logout").onclick=async()=>{
       updateDashboard(d);
       if(typeof initB7Analyst==="function"){
         await initB7Analyst();
+      }
+      if(typeof initB8Radar==="function"){
+        await initB8Radar();
       }
 
       $("loginScreen").classList.add("hidden");
@@ -1260,3 +1269,176 @@ async function initB7Analyst(){
 
   await loadMatches();
 }
+
+/* =========================
+   B8 — MATCH RADAR
+   ========================= */
+
+(function initB8Radar(){
+  const workspace=$("radarWorkspace");
+  if(!workspace) return;
+
+  const matchCount=$("radarMatchCount");
+  const signalCount=$("radarSignalCount");
+  const updatedAt=$("radarUpdatedAt");
+  const status=$("radarStatus");
+  const empty=$("radarEmpty");
+  const results=$("radarResults");
+
+  function radarStatus(message){
+    if(!status) return;
+    status.textContent=message;
+    status.classList.remove("hidden");
+  }
+
+  function clearRadarStatus(){
+    if(!status) return;
+    status.textContent="";
+    status.classList.add("hidden");
+  }
+
+  function formatRadarTime(value){
+    if(!value) return "—";
+    const date=new Date(value);
+    if(Number.isNaN(date.getTime())) return "—";
+    return date.toLocaleTimeString(undefined,{
+      hour:"2-digit",
+      minute:"2-digit"
+    });
+  }
+
+  function signalLabel(signal){
+    const labels={
+      formSeparation:"Form separation",
+      scoringSeparation:"Scoring profile",
+      dataCoverage:"Data coverage",
+      h2hContext:"H2H context",
+      freshness:"Freshness"
+    };
+    return labels[signal] || signal;
+  }
+
+  function renderRadar(data){
+    const items=Array.isArray(data?.items)?data.items:[];
+    const count=Number(data?.count)||0;
+
+    matchCount.textContent=String(count);
+
+    const usableSignals=items.reduce((total,item)=>{
+      return total+(Number(item?.radar?.usableSignals)||0);
+    },0);
+
+    signalCount.textContent=String(usableSignals);
+    updatedAt.textContent=formatRadarTime(data?.generatedAt);
+
+    results.innerHTML="";
+
+    if(!items.length){
+      results.classList.add("hidden");
+      empty.classList.remove("hidden");
+      return;
+    }
+
+    empty.classList.add("hidden");
+    results.classList.remove("hidden");
+
+    results.innerHTML=items.map(item=>{
+      const match=item?.match||{};
+      const radar=item?.radar||{};
+      const signals=radar?.signals&&typeof radar.signals==="object"
+        ? radar.signals
+        : {};
+
+      const usable=Object.entries(signals)
+        .filter(([,signal])=>signal&&signal.level&&signal.level!=="none")
+        .map(([key,signal])=>{
+          const level=String(signal.level);
+          const levelClass=
+            level==="strong"
+              ? "radarSignal radarSignalStrong"
+              : level==="moderate"
+                ? "radarSignal radarSignalModerate"
+                : "radarSignal";
+
+          return `<span class="${levelClass}">
+            ${escapeHTML(signalLabel(key))} · ${escapeHTML(level)}
+          </span>`;
+        })
+        .join("");
+
+      const evidence=item?.evidence||{};
+
+      return `
+        <article class="radarCard">
+          <div class="radarCardHead">
+            <div>
+              <div class="radarMatchName">
+                ${escapeHTML(match.homeTeamName||"Home team")}
+                vs
+                ${escapeHTML(match.awayTeamName||"Away team")}
+              </div>
+              <div class="radarCompetition">
+                ${escapeHTML(match.competitionName||"Competition unavailable")}
+              </div>
+            </div>
+            <span class="radarAttention">
+              Attention ${Number(radar.attentionScore)||0}
+            </span>
+          </div>
+
+          <div class="radarSignals">
+            ${usable || '<span class="radarSignal">Limited verified signal</span>'}
+          </div>
+
+          <div class="radarEvidence">
+            <div class="radarEvidenceItem">
+              <strong>${Number(evidence.homeResults)||0}</strong>
+              <small>Home-team results</small>
+            </div>
+            <div class="radarEvidenceItem">
+              <strong>${Number(evidence.awayResults)||0}</strong>
+              <small>Away-team results</small>
+            </div>
+            <div class="radarEvidenceItem">
+              <strong>${Number(evidence.sourceCount)||0}</strong>
+              <small>Verified sources</small>
+            </div>
+          </div>
+        </article>
+      `;
+    }).join("");
+  }
+
+  async function loadRadar(){
+    const token=localStorage.getItem("betcode_token");
+
+    if(!token){
+      radarStatus("Sign in to access Match Radar.");
+      return;
+    }
+
+    try{
+      clearRadarStatus();
+
+      const response=await fetch("/api/radar",{
+        headers:{
+          "Authorization":"Bearer "+token
+        }
+      });
+
+      const data=await response.json();
+
+      if(!response.ok||!data.success){
+        throw new Error(data.message||"Unable to load Match Radar.");
+      }
+
+      renderRadar(data);
+    }catch(error){
+      radarStatus(error.message||"Unable to load Match Radar.");
+      results.classList.add("hidden");
+    }
+  }
+
+  window.initB8Radar=loadRadar;
+  loadRadar();
+})();
