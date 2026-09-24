@@ -109,6 +109,28 @@ async function initSchema() {
       updated_at TEXT NOT NULL
     );
 
+
+    CREATE TABLE IF NOT EXISTS bcp_user_saved_teams (
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+      team_id BIGINT NOT NULL
+        REFERENCES bcp_teams(id)
+        ON DELETE RESTRICT,
+      created_at TEXT NOT NULL,
+      UNIQUE(user_id, team_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_bcp_user_saved_teams_user
+      ON bcp_user_saved_teams(user_id);
+
+    CREATE INDEX IF NOT EXISTS idx_bcp_user_saved_teams_team
+      ON bcp_user_saved_teams(team_id);
+
+      ON bcp_user_saved_matches(match_id);
+
+
     CREATE TABLE IF NOT EXISTS bcp_matches (
       id BIGSERIAL PRIMARY KEY,
       home_team_id BIGINT NOT NULL
@@ -127,6 +149,22 @@ async function initSchema() {
       CHECK(home_team_id <> away_team_id)
     );
 
+    CREATE TABLE IF NOT EXISTS bcp_user_saved_matches (
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+      match_id BIGINT NOT NULL
+        REFERENCES bcp_matches(id)
+        ON DELETE CASCADE,
+      created_at TEXT NOT NULL,
+      UNIQUE(user_id, match_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_bcp_user_saved_matches_user
+      ON bcp_user_saved_matches(user_id);
+
+    CREATE INDEX IF NOT EXISTS idx_bcp_user_saved_matches_match
     CREATE TABLE IF NOT EXISTS bcp_match_sources (
       id BIGSERIAL PRIMARY KEY,
       match_id BIGINT NOT NULL

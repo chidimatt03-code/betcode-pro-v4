@@ -132,6 +132,54 @@ function initializeGlobalSchema(db) {
   `);
 
   db.run(`
+    CREATE TABLE IF NOT EXISTS bcp_user_saved_teams (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+      team_id INTEGER NOT NULL
+        REFERENCES bcp_teams(id)
+        ON DELETE RESTRICT,
+      created_at TEXT NOT NULL,
+      UNIQUE(user_id, team_id)
+    )
+  `);
+
+  db.run(`
+    CREATE INDEX IF NOT EXISTS idx_bcp_user_saved_teams_user
+      ON bcp_user_saved_teams(user_id)
+  `);
+
+  db.run(`
+    CREATE INDEX IF NOT EXISTS idx_bcp_user_saved_teams_team
+      ON bcp_user_saved_teams(team_id)
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS bcp_user_saved_matches (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+      match_id INTEGER NOT NULL
+        REFERENCES bcp_matches(id)
+        ON DELETE CASCADE,
+      created_at TEXT NOT NULL,
+      UNIQUE(user_id, match_id)
+    )
+  `);
+
+  db.run(`
+    CREATE INDEX IF NOT EXISTS idx_bcp_user_saved_matches_user
+      ON bcp_user_saved_matches(user_id)
+  `);
+
+  db.run(`
+    CREATE INDEX IF NOT EXISTS idx_bcp_user_saved_matches_match
+      ON bcp_user_saved_matches(match_id)
+  `);
+
+  db.run(`
     CREATE INDEX IF NOT EXISTS idx_bcp_matches_teams
       ON bcp_matches(home_team_id, away_team_id)
   `);

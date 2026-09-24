@@ -6,7 +6,9 @@ const TABLES = Object.freeze({
   matchSources: "bcp_match_sources",
   matchResults: "bcp_match_results",
   matchStateObservations: "bcp_match_state_observations",
-  matchStates: "bcp_match_states"
+  matchStates: "bcp_match_states",
+  userSavedTeams: "bcp_user_saved_teams",
+  userSavedMatches: "bcp_user_saved_matches"
 });
 
 function requireAdapter(adapter) {
@@ -21,6 +23,119 @@ function createRepository(adapter) {
   const db = requireAdapter(adapter);
 
   return Object.freeze({
+    async saveUserTeam({
+      userId,
+      teamId,
+      now = new Date().toISOString()
+    }) {
+      const existing = await db.get(
+        `SELECT * FROM ${TABLES.userSavedTeams}
+         WHERE user_id = ? AND team_id = ?
+         LIMIT 1`,
+        [userId, teamId]
+      );
+
+      if (existing) {
+        return existing;
+      }
+
+      return db.get(
+        `INSERT INTO ${TABLES.userSavedTeams}
+          (user_id, team_id, created_at)
+         VALUES (?, ?, ?)
+         RETURNING *`,
+        [userId, teamId, now]
+      );
+    },
+
+    async removeUserTeam(userId, teamId) {
+      return db.get(
+        `DELETE FROM ${TABLES.userSavedTeams}
+         WHERE user_id = ? AND team_id = ?
+         RETURNING *`,
+        [userId, teamId]
+      );
+    },
+
+    async findUserSavedTeams(userId) {
+      return db.all(
+        `SELECT st.*,
+                t.canonical_name,
+                t.normalized_name,
+                t.country,
+                t.region,
+                t.active
+         FROM ${TABLES.userSavedTeams} st
+         JOIN ${TABLES.teams} t ON t.id = st.team_id
+         WHERE st.user_id = ?
+         ORDER BY st.created_at DESC, st.id DESC`,
+        [userId]
+      );
+    },
+
+    async saveUserMatch({
+      userId,
+      matchId,
+      now = new Date().toISOString()
+    }) {
+      const existing = await db.get(
+        `SELECT * FROM ${TABLES.userSavedMatches}
+         WHERE user_id = ? AND match_id = ?
+         LIMIT 1`,
+        [userId, matchId]
+      );
+
+      if (existing) {
+        return existing;
+      }
+
+      return db.get(
+        `INSERT INTO ${TABLES.userSavedMatches}
+          (user_id, match_id, created_at)
+         VALUES (?, ?, ?)
+         RETURNING *`,
+        [userId, matchId, now]
+      );
+    },
+
+    async removeUserMatch(userId, matchId) {
+      return db.get(
+        `DELETE FROM ${TABLES.userSavedMatches}
+         WHERE user_id = ? AND match_id = ?
+         RETURNING *`,
+        [userId, matchId]
+      );
+    },
+
+    async findUserSavedMatches(userId) {
+      return db.all(
+        `SELECT sm.*,
+                m.scheduled_start,
+                m.status,
+                m.home_team_id,
+                m.away_team_id,
+                m.competition_id,
+                ht.canonical_name AS home_team_name,
+                at.canonical_name AS away_team_name,
+                c.canonical_name AS competition_name
+         FROM ${TABLES.userSavedMatches} sm
+         JOIN ${TABLES.matches} m ON m.id = sm.match_id
+         JOIN ${TABLES.teams} ht ON ht.id = m.home_team_id
+         JOIN ${TABLES.teams} at ON at.id = m.away_team_id
+         LEFT JOIN ${TABLES.competitions} c ON c.id = m.competition_id
+         WHERE sm.user_id = ?
+         ORDER BY
+           CASE
+             WHEN m.status IN ('live', 'halftime') THEN 0
+             WHEN m.status = 'scheduled' THEN 1
+             ELSE 2
+           END,
+           m.scheduled_start ASC,
+           sm.id DESC`,
+        [userId]
+      );
+    },
+
     async getSourceByCode(code) {
       return db.get(
         `SELECT * FROM ${TABLES.sources} WHERE code = ? LIMIT 1`,

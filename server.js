@@ -1376,6 +1376,275 @@ app.post("/api/analyst/match",async(req,res)=>{
   }
 });
 
+app.get("/api/football-desk",async(req,res)=>{
+  let adapter=null;
+
+  try{
+    const user=authUser(req) || apiKeyUser(req);
+
+    if(!user)
+      return res.status(401).json({
+        success:false,
+        message:"Please log in to access My Football Desk."
+      });
+
+    const { createSqliteAdapter } = require("./engine/global/sqliteAdapter");
+    const { createRepository } = require("./engine/global/repository");
+    const { getFootballDesk } = require("./engine/global/footballDeskService");
+
+    adapter=createSqliteAdapter(path.join(__dirname,"data.db"));
+    const repository=createRepository(adapter);
+
+    const desk=await getFootballDesk(repository,user.id);
+
+    return res.status(200).json({
+      success:true,
+      ...desk
+    });
+
+  }catch(e){
+    console.error("B9_FOOTBALL_DESK_API_ERROR",e);
+
+    return res.status(500).json({
+      success:false,
+      message:"Unable to load My Football Desk."
+    });
+
+  }finally{
+    if(adapter){
+      try{
+        adapter.close();
+      }catch(error){
+        console.error("B9_FOOTBALL_DESK_API_CLOSE_ERROR",error);
+      }
+    }
+  }
+});
+
+app.post("/api/football-desk/teams",async(req,res)=>{
+  let adapter=null;
+
+  try{
+    const user=authUser(req) || apiKeyUser(req);
+
+    if(!user)
+      return res.status(401).json({
+        success:false,
+        message:"Please log in to save a team."
+      });
+
+    const teamId=Number(req.body?.teamId);
+
+    if(!Number.isInteger(teamId) || teamId<=0)
+      return res.status(400).json({
+        success:false,
+        message:"A valid team ID is required."
+      });
+
+    const { createSqliteAdapter } = require("./engine/global/sqliteAdapter");
+    const { createRepository } = require("./engine/global/repository");
+    const { saveTeam } = require("./engine/global/footballDeskService");
+
+    adapter=createSqliteAdapter(path.join(__dirname,"data.db"));
+    const repository=createRepository(adapter);
+
+    const saved=await saveTeam(repository,user.id,teamId);
+
+    return res.status(200).json({
+      success:true,
+      status:"saved",
+      team:saved
+    });
+
+  }catch(e){
+    if(e.message==="BCP_FOOTBALL_DESK_TEAM_NOT_FOUND")
+      return res.status(404).json({
+        success:false,
+        message:"The requested team was not found."
+      });
+
+    console.error("B9_FOOTBALL_DESK_SAVE_TEAM_API_ERROR",e);
+
+    return res.status(500).json({
+      success:false,
+      message:"Unable to save the team."
+    });
+
+  }finally{
+    if(adapter){
+      try{
+        adapter.close();
+      }catch(error){
+        console.error("B9_FOOTBALL_DESK_SAVE_TEAM_API_CLOSE_ERROR",error);
+      }
+    }
+  }
+});
+
+app.delete("/api/football-desk/teams/:teamId",async(req,res)=>{
+  let adapter=null;
+
+  try{
+    const user=authUser(req) || apiKeyUser(req);
+    if(!user)
+      return res.status(401).json({
+        success:false,
+        message:"Please log in to remove a team."
+      });
+
+    const teamId=Number(req.params.teamId);
+
+    if(!Number.isInteger(teamId) || teamId<=0)
+      return res.status(400).json({
+        success:false,
+        message:"A valid team ID is required."
+      });
+
+    const { createSqliteAdapter } = require("./engine/global/sqliteAdapter");
+    const { createRepository } = require("./engine/global/repository");
+    const { removeTeam } = require("./engine/global/footballDeskService");
+
+    adapter=createSqliteAdapter(path.join(__dirname,"data.db"));
+    const repository=createRepository(adapter);
+
+    await removeTeam(repository,user.id,teamId);
+
+    return res.status(200).json({
+      success:true,
+      status:"removed"
+    });
+
+  }catch(e){
+    console.error("B9_FOOTBALL_DESK_REMOVE_TEAM_API_ERROR",e);
+
+    return res.status(500).json({
+      success:false,
+      message:"Unable to remove the team."
+    });
+
+  }finally{
+    if(adapter){
+      try{
+        adapter.close();
+      }catch(error){
+        console.error("B9_FOOTBALL_DESK_REMOVE_TEAM_API_CLOSE_ERROR",error);
+      }
+    }
+  }
+});
+
+app.post("/api/football-desk/matches",async(req,res)=>{
+  let adapter=null;
+
+  try{
+    const user=authUser(req) || apiKeyUser(req);
+
+    if(!user)
+      return res.status(401).json({
+        success:false,
+        message:"Please log in to save a match."
+      });
+
+    const matchId=Number(req.body?.matchId);
+
+    if(!Number.isInteger(matchId) || matchId<=0)
+      return res.status(400).json({
+        success:false,
+        message:"A valid match ID is required."
+      });
+
+    const { createSqliteAdapter } = require("./engine/global/sqliteAdapter");
+    const { createRepository } = require("./engine/global/repository");
+    const { saveMatch } = require("./engine/global/footballDeskService");
+
+    adapter=createSqliteAdapter(path.join(__dirname,"data.db"));
+    const repository=createRepository(adapter);
+
+    const saved=await saveMatch(repository,user.id,matchId);
+
+    return res.status(200).json({
+      success:true,
+      status:"saved",
+      match:saved
+    });
+
+  }catch(e){
+    if(e.message==="BCP_FOOTBALL_DESK_MATCH_NOT_FOUND")
+      return res.status(404).json({
+        success:false,
+        message:"The requested match was not found."
+      });
+
+    console.error("B9_FOOTBALL_DESK_SAVE_MATCH_API_ERROR",e);
+
+    return res.status(500).json({
+      success:false,
+      message:"Unable to save the match."
+    });
+
+  }finally{
+    if(adapter){
+      try{
+        adapter.close();
+      }catch(error){
+        console.error("B9_FOOTBALL_DESK_SAVE_MATCH_API_CLOSE_ERROR",error);
+      }
+    }
+  }
+});
+
+app.delete("/api/football-desk/matches/:matchId",async(req,res)=>{
+  let adapter=null;
+
+  try{
+    const user=authUser(req) || apiKeyUser(req);
+    if(!user)
+      return res.status(401).json({
+        success:false,
+        message:"Please log in to remove a match."
+      });
+
+    const matchId=Number(req.params.matchId);
+
+    if(!Number.isInteger(matchId) || matchId<=0)
+      return res.status(400).json({
+        success:false,
+        message:"A valid match ID is required."
+      });
+
+    const { createSqliteAdapter } = require("./engine/global/sqliteAdapter");
+    const { createRepository } = require("./engine/global/repository");
+    const { removeMatch } = require("./engine/global/footballDeskService");
+
+    adapter=createSqliteAdapter(path.join(__dirname,"data.db"));
+    const repository=createRepository(adapter);
+
+    await removeMatch(repository,user.id,matchId);
+
+    return res.status(200).json({
+      success:true,
+      status:"removed"
+    });
+
+  }catch(e){
+    console.error("B9_FOOTBALL_DESK_REMOVE_MATCH_API_ERROR",e);
+
+    return res.status(500).json({
+      success:false,
+      message:"Unable to remove the match."
+    });
+
+  }finally{
+    if(adapter){
+      try{
+        adapter.close();
+      }catch(error){
+        console.error("B9_FOOTBALL_DESK_REMOVE_MATCH_API_CLOSE_ERROR",error);
+      }
+    }
+  }
+});
+
 app.post("/api/reset-password", authRateLimit,(req,res)=>{
   try{
     const token=String(req.body.token||"").trim();
