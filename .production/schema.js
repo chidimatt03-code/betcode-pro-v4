@@ -165,6 +165,7 @@ async function initSchema() {
       ON bcp_user_saved_matches(user_id);
 
     CREATE INDEX IF NOT EXISTS idx_bcp_user_saved_matches_match
+      ON bcp_user_saved_matches(match_id);
     CREATE TABLE IF NOT EXISTS bcp_match_sources (
       id BIGSERIAL PRIMARY KEY,
       match_id BIGINT NOT NULL
@@ -207,6 +208,34 @@ async function initSchema() {
 
     CREATE INDEX IF NOT EXISTS idx_bcp_match_sources_observed
       ON bcp_match_sources(observed_at);
+
+
+    CREATE TABLE IF NOT EXISTS bcp_match_results (
+      id BIGSERIAL PRIMARY KEY,
+      match_id BIGINT NOT NULL
+        REFERENCES bcp_matches(id) ON DELETE CASCADE,
+      source_id BIGINT NOT NULL
+        REFERENCES bcp_sources(id) ON DELETE CASCADE,
+      source_event_id TEXT NOT NULL,
+      home_score INTEGER NOT NULL,
+      away_score INTEGER NOT NULL,
+      status TEXT NOT NULL DEFAULT 'finished',
+      observed_at TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      UNIQUE(source_id, source_event_id),
+      CHECK(home_score >= 0),
+      CHECK(away_score >= 0)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_bcp_match_results_match
+      ON bcp_match_results(match_id);
+
+    CREATE INDEX IF NOT EXISTS idx_bcp_match_results_source
+      ON bcp_match_results(source_id);
+
+    CREATE INDEX IF NOT EXISTS idx_bcp_match_results_observed
+      ON bcp_match_results(observed_at);
 
 
     CREATE TABLE IF NOT EXISTS bcp_match_state_observations (
