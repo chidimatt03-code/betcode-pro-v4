@@ -11,10 +11,15 @@ const espn = require("./espn");
 
 function createGlobalEngine({
   dbPath = path.join(__dirname, "../../data.db"),
+  dbAdapter = null,
+  initializeSchema = true,
   adapters = [espn]
 } = {}) {
-  const db = createSqliteAdapter(dbPath);
-  initializeGlobalSchema(db);
+  const db = dbAdapter || createSqliteAdapter(dbPath);
+
+  if (initializeSchema) {
+    initializeGlobalSchema(db);
+  }
   const repository = createRepository(db);
   const registry = createSourceRegistry();
 
