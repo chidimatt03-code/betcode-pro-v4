@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="/icons/icon.svg">
 <meta name="description" content="BetCode Pro — convert betting booking codes safely.">
 <title>BetCode Pro</title>
-<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/style.css?v=20260926ui2">
 <link rel="manifest" href="/manifest.webmanifest">
 </head>
 
@@ -459,54 +459,124 @@
 
 <!-- MAIN APP -->
 <div id="mainApp" class="hidden">
+  <div class="mobileAppShell">
 
-  <section class="dashboardHero">
-    <div class="dashboardWelcome">
-      <span class="eyebrow">BETCODE PRO</span>
-      <h2>Ready to convert?</h2>
-      <p>Move your booking code between supported bookmakers in a few simple steps.</p>
-    </div>
-    <div class="heroIcon">↔</div>
-  </section>
+    <div class="systemStatusSpace" aria-hidden="true"></div>
 
-  <section class="dashboardStats">
-    <div class="dashboardStat">
-      <span class="statIcon">↔</span>
-      <div>
-        <b id="dashboardConversions">—</b>
-        <small>Conversions</small>
+    <header class="mobileAppHeader">
+      <div class="mobileBrand">
+        <strong>BETCODE PRO</strong>
+        <span>Smart booking-code conversion</span>
       </div>
-    </div>
-    <div class="dashboardStat">
-      <span class="statIcon">◆</span>
-      <div>
-        <b id="dashboardPlan">Free</b>
-        <small>Plan</small>
-      </div>
-    </div>
-    <div class="dashboardStat">
-      <span class="statIcon">●</span>
-      <div>
-        <b id="dashboardCredits">—</b>
-        <small>Credits</small>
-      </div>
-    </div>
-  </section>
+      <button type="button" class="mobileProfileBadge" aria-label="Open account">
+        <span>●</span>
+      </button>
+    </header>
 
-  <section class="quickActions">
-    <button type="button" class="quickAction" onclick="document.getElementById('from').focus()">
-      <span>↔</span>
-      <strong>Convert code</strong>
-      <small>Start a conversion</small>
-    </button>
-    <button type="button" class="quickAction" onclick="document.getElementById('historyCard').scrollIntoView({behavior:'smooth'})">
-      <span>◷</span>
-      <strong>History</strong>
-      <small>View recent activity</small>
-    </button>
-  </section>
+    <nav class="mobileTopTabs" aria-label="Dashboard sections">
+      <button type="button" class="mobileTopTab active" data-dashboard-tab="home">
+        <span class="uiIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg></span>
+        <small>Dashboard</small>
+      </button>
+      <button type="button" class="mobileTopTab" data-dashboard-tab="convert">
+        <span class="uiIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7h13l-3-3"/><path d="M17 17H4l3 3"/><path d="M20 7 17 4"/><path d="M4 17l3 3"/></svg></span>
+        <small>Convert</small>
+      </button>
+      <button type="button" class="mobileTopTab" data-dashboard-tab="intelligence">
+        <span class="uiIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg></span>
+        <small>Intelligence</small>
+      </button>
+      <button type="button" class="mobileTopTab" data-dashboard-tab="account">
+        <span class="uiIcon" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 21c.8-4 3.1-6 7-6s6.2 2 7 6"/><circle cx="12" cy="12" r="9"/></svg></span>
+        <small>Account</small>
+      </button>
+    </nav>
 
-  <!-- MY FOOTBALL DESK -->
+    <section class="dashboardHero redesignedHero">
+      <div class="dashboardHeroOverlay"></div>
+      <div class="dashboardWelcome">
+        <span class="eyebrow">YOUR FOOTBALL DESK</span>
+        <h2>Smart football data.<br>Clearer decisions.<br>One professional desk.</h2>
+        <p>Convert supported booking codes and explore verified football intelligence in one place.</p>
+        <div class="heroActions">
+          <button type="button" class="primary" onclick="document.getElementById('from').focus()">
+            Convert Code →
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="quickActionsSection">
+      <div class="mobileSectionLabel">QUICK ACTIONS</div>
+
+      <section class="quickActions">
+        <button type="button" class="quickAction" onclick="document.getElementById('from').focus()">
+          <span class="uiIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7h13l-3-3"/><path d="M17 17H4l3 3"/><path d="M20 7 17 4"/><path d="M4 17l3 3"/></svg></span>
+          <strong>Convert Code</strong>
+          <i>→</i>
+        </button>
+
+        <button type="button" class="quickAction" onclick="document.getElementById('radarWorkspace').scrollIntoView({behavior:'smooth'})">
+          <span class="uiIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg></span>
+          <strong>Live Centre</strong>
+          <i>→</i>
+        </button>
+
+        <button type="button" class="quickAction" onclick="document.getElementById('analystWorkspace').scrollIntoView({behavior:'smooth'})">
+          <span class="uiIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 17c2.5-5 5.5-5 8-1s5.5 4 8-1"/><path d="M4 12c2.5-5 5.5-5 8-1s5.5 4 8-1"/><path d="M4 7c2.5-5 5.5-5 8-1s5.5 4 8-1"/></svg></span>
+          <strong>Match Intelligence</strong>
+          <i>→</i>
+        </button>
+      </section>
+    </section>
+
+    <section class="dashboardStats dashboardStatsHidden" aria-hidden="true">
+      <div class="dashboardStat">
+        <span class="statIcon">↔</span>
+        <div>
+          <b id="dashboardConversions">—</b>
+          <small>Conversions</small>
+        </div>
+      </div>
+      <div class="dashboardStat">
+        <span class="statIcon">◆</span>
+        <div>
+          <b id="dashboardPlan">Free</b>
+          <small>Plan</small>
+        </div>
+      </div>
+      <div class="dashboardStat">
+        <span class="statIcon">●</span>
+        <div>
+          <b id="dashboardCredits">—</b>
+          <small>Credits</small>
+        </div>
+      </div>
+    </section>
+
+<nav class="mobileBottomNav" aria-label="Primary navigation">
+  <button type="button" class="mobileBottomItem active" data-bottom-nav="home">
+    <span class="uiIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg></span>
+    <small>Home</small>
+  </button>
+
+  <button type="button" class="mobileBottomItem" data-bottom-nav="convert">
+    <span class="uiIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7h13l-3-3"/><path d="M17 17H4l3 3"/><path d="M20 7 17 4"/><path d="M4 17l3 3"/></svg></span>
+    <small>Convert</small>
+  </button>
+
+  <button type="button" class="mobileBottomItem" data-bottom-nav="radar">
+    <span class="uiIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg></span>
+    <small>Radar</small>
+  </button>
+
+  <button type="button" class="mobileBottomItem" data-bottom-nav="account">
+    <span class="uiIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 21c.8-4 3.1-6 7-6s6.2 2 7 6"/><circle cx="12" cy="12" r="9"/></svg></span>
+    <small>Account</small>
+  </button>
+</nav>
+
+<!-- MY FOOTBALL DESK -->
 <section class="card footballDesk" id="footballDesk">
   <div class="sectionHeading footballDeskHeading">
     <div>
@@ -624,7 +694,7 @@
   <div id="radarStatus" class="radarStatus hidden"></div>
 
   <div id="radarEmpty" class="radarEmpty">
-    <span class="radarEmptyIcon">⌁</span>
+    <span class="radarEmptyIcon uiIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 17c2.5-5 5.5-5 8-1s5.5 4 8-1"/><path d="M4 12c2.5-5 5.5-5 8-1s5.5 4 8-1"/><path d="M4 7c2.5-5 5.5-5 8-1s5.5 4 8-1"/></svg></span>
     <div>
       <strong>Radar is waiting for verified match observations.</strong>
       <p>
@@ -1004,7 +1074,7 @@
 
 </main>
 
-<script src="/app.js"></script>
+<script src="/app.js?v=20260926ui2"></script>
 <script>
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.getRegistrations().then(regs => {
